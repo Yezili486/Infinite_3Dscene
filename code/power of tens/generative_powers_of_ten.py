@@ -1706,6 +1706,10 @@ if __name__ == "__main__":
     photo_opt_success = test_photo_based_optimization()
     photo_sampling_result = test_photo_based_sampling()
     
+    # 第八步：测试缩放视频生成
+    print("\n--- 第八步：测试缩放视频生成 ---")
+    video_success = test_zoom_video_generation()
+    
     # 示例配置
     prompts = ["a distant galaxy", "a star system", "an alien planet surface", "an insect on a tree branch"]
     zoom_factors = [1, 2, 4, 8]
@@ -1749,7 +1753,7 @@ if __name__ == "__main__":
     # 完整流程演示
     if (rendering_success and ddpm_success and blending_success and 
         sampling_result is not None and photo_opt_success and 
-        photo_sampling_result is not None):
+        photo_sampling_result is not None and video_success):
         
         print(f"\n--- 完整流程演示 ---")
         
@@ -1851,6 +1855,8 @@ if __name__ == "__main__":
             missing_components.append("照片优化")
         if photo_sampling_result is None:
             missing_components.append("照片采样")
+        if not video_success:
+            missing_components.append("缩放视频生成")
         
         print(f"\n⚠️  部分功能测试失败，跳过完整演示")
         print(f"失败的组件: {', '.join(missing_components)}")
@@ -1863,6 +1869,7 @@ if __name__ == "__main__":
     print(f"   - 多分辨率融合已实现并测试")
     print(f"   - 联合多尺度采样（算法2）已实现并测试")
     print(f"   - 基于照片的缩放优化（第4.4节）已实现并测试")
+    print(f"   - 缩放视频生成已实现并测试")
     print(f"   - 'Generative Powers of Ten' 完整实现完成!")
     
     # 功能总结
@@ -1885,11 +1892,16 @@ if __name__ == "__main__":
     print(f"6. 第4.4节: 基于照片的缩放")
     print(f"   - photo_based_optimization(): L2损失优化")
     print(f"   - joint_multi_scale_sampling_with_photo(): 照片约束采样")
+    print(f"7. 缩放视频生成")
+    print(f"   - render_zoom_video(): 基础缩放视频生成")
+    print(f"   - render_smooth_zoom_video(): 平滑连续缩放视频")
+    print(f"   - render_zoom_video_with_effects(): 带特效的缩放视频")
+    print(f"   - create_zoom_frame(): 缩放帧创建函数")
     
     # 使用说明
     print(f"\n=== 使用说明 ===")
     print(f"1. 完整版本依赖:")
-    print(f"   pip install diffusers transformers torch torchvision")
+    print(f"   pip install diffusers transformers torch torchvision opencv-python")
     print(f"2. 文本到多尺度图像:")
     print(f"   joint_multi_scale_sampling(prompts, zoom_factors)")
     print(f"3. 基于照片的生成:")
@@ -1898,6 +1910,10 @@ if __name__ == "__main__":
     print(f"   joint_multi_scale_sampling_simple() / *_with_photo_simple()")
     print(f"5. 结果保存:")
     print(f"   ZoomStack.save_layer_as_image(layer_idx, filename)")
+    print(f"6. 缩放视频生成:")
+    print(f"   render_zoom_video(zoom_stack, 'output.mp4')")
+    print(f"   render_smooth_zoom_video(zoom_stack, 'smooth.mp4')")
+    print(f"   render_zoom_video_with_effects(zoom_stack, 'effects.mp4')")
     
     # 论文实现状态
     print(f"\n=== 论文实现状态 ===")
@@ -1907,5 +1923,502 @@ if __name__ == "__main__":
     print(f"✅ 第4.4节: 基于照片的缩放")
     print(f"✅ DDPM噪声调度和更新步骤")
     print(f"✅ 多分辨率融合策略")
+    print(f"✅ 缩放视频生成（多种模式）")
     print(f"🎯 'Generative Powers of Ten' 核心算法完整实现!")
     
+    # ==================== 缩放视频生成 ====================
+
+    def render_zoom_video(zoom_stack, output_path="zoom_video.mp4", fps=30, 
+                         duration_per_scale=2.0, smooth_transitions=True,
+                         zoom_speed="constant", final_zoom_factor=None):
+        """
+        从缩放栈渲染缩放视频
+        
+        从最粗尺度到最细尺度创建平滑的缩放视频，尺度间进行插值
+        
+        Args:
+            zoom_stack: ZoomStack 对象，包含多层图像
+            output_path: 输出视频文件路径
+            fps: 视频帧率，默认30
+            duration_per_scale: 每个尺度的持续时间（秒），默认2.0
+            smooth_transitions: 是否在尺度间进行平滑过渡
+            zoom_speed: 缩放速度类型 ("constant", "accelerating", "decelerating")
+            final_zoom_factor: 最终缩放因子，如果None则使用最大缩放因子
+        
+        Returns:
+            str: 输出视频路径
+        """
+        import cv2
+        import numpy as np
+        from PIL import Image
+        
+        print(f"\n=== 生成缩放视频 ===")
+        print(f"输出路径: {output_path}")
+        print(f"帧率: {fps} FPS")
+        print(f"每尺度持续时间: {duration_per_scale} 秒")
+        print(f"缩放速度: {zoom_speed}")
+        
+        # 获取基本参数
+        N = zoom_stack.N
+        H, W = zoom_stack.H, zoom_stack.W
+        zoom_factors = zoom_stack.zoom_factors
+        
+        if final_zoom_factor is None:
+            final_zoom_factor = max(zoom_factors)
+        
+        print(f"缩放栈信息: {N}层, 分辨率{H}x{W}, 缩放因子{zoom_factors}")
+        print(f"最终缩放因子: {final_zoom_factor}")
+        
+        # 计算总帧数
+        frames_per_scale = int(fps * duration_per_scale)
+        if smooth_transitions:
+            # 包括尺度间的过渡帧
+            transition_frames = frames_per_scale // 2
+            total_frames = N * frames_per_scale + (N - 1) * transition_frames
+        else:
+            total_frames = N * frames_per_scale
+        
+        print(f"总帧数: {total_frames}")
+        
+        # 设置视频编写器
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        video_writer = cv2.VideoWriter(output_path, fourcc, fps, (W, H))
+        
+        if not video_writer.isOpened():
+            raise RuntimeError(f"无法创建视频文件: {output_path}")
+        
+        try:
+            frame_count = 0
+            
+            # 为每个尺度生成帧
+            for scale_idx in range(N):
+                print(f"\n--- 生成尺度 {scale_idx+1}/{N} (缩放因子 {zoom_factors[scale_idx]}) ---")
+                
+                # 获取当前尺度的渲染图像
+                current_img = Pi_image(zoom_stack, scale_idx)
+                
+                # 转换到[0, 1]范围并转为numpy
+                current_img_np = torch.clamp((current_img + 1.0) / 2.0, 0.0, 1.0)
+                current_img_np = (current_img_np.cpu().numpy() * 255).astype(np.uint8)
+                
+                # 当前尺度的主要帧
+                for frame_in_scale in range(frames_per_scale):
+                    # 计算缩放进度（在当前尺度内）
+                    progress_in_scale = frame_in_scale / frames_per_scale
+                    
+                    # 根据缩放速度调整进度
+                    if zoom_speed == "accelerating":
+                        zoom_progress = progress_in_scale ** 2
+                    elif zoom_speed == "decelerating":
+                        zoom_progress = 1 - (1 - progress_in_scale) ** 2
+                    else:  # constant
+                        zoom_progress = progress_in_scale
+                    
+                    # 计算当前的缩放级别
+                    if scale_idx == 0:
+                        # 第一个尺度：从1开始缩放
+                        current_zoom = 1.0 + zoom_progress * (zoom_factors[scale_idx] - 1.0)
+                    else:
+                        # 后续尺度：从前一个缩放因子开始
+                        prev_zoom = zoom_factors[scale_idx - 1]
+                        current_zoom = prev_zoom + zoom_progress * (zoom_factors[scale_idx] - prev_zoom)
+                    
+                    # 应用缩放并创建帧
+                    frame = create_zoom_frame(current_img_np, current_zoom, H, W)
+                    
+                    # 转换为BGR格式（OpenCV要求）
+                    frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+                    video_writer.write(frame_bgr)
+                    
+                    frame_count += 1
+                    
+                    if frame_count % (fps // 2) == 0:  # 每半秒打印一次进度
+                        print(f"  帧 {frame_count}/{total_frames} ({frame_count/total_frames*100:.1f}%) - 缩放 {current_zoom:.2f}x")
+                
+                # 生成到下一个尺度的过渡帧
+                if smooth_transitions and scale_idx < N - 1:
+                    print(f"  生成到尺度 {scale_idx+2} 的过渡帧...")
+                    
+                    next_img = Pi_image(zoom_stack, scale_idx + 1)
+                    next_img_np = torch.clamp((next_img + 1.0) / 2.0, 0.0, 1.0)
+                    next_img_np = (next_img_np.cpu().numpy() * 255).astype(np.uint8)
+                    
+                    for trans_frame in range(transition_frames):
+                        # 插值进度
+                        alpha = trans_frame / transition_frames
+                        
+                        # 图像插值
+                        blended_img = (1 - alpha) * current_img_np + alpha * next_img_np
+                        blended_img = blended_img.astype(np.uint8)
+                        
+                        # 缩放插值
+                        start_zoom = zoom_factors[scale_idx]
+                        end_zoom = zoom_factors[scale_idx + 1]
+                        current_zoom = start_zoom + alpha * (end_zoom - start_zoom)
+                        
+                        # 创建过渡帧
+                        frame = create_zoom_frame(blended_img, current_zoom, H, W)
+                        frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+                        video_writer.write(frame_bgr)
+                        
+                        frame_count += 1
+            
+            print(f"\n✅ 视频生成完成!")
+            print(f"总共生成 {frame_count} 帧")
+            print(f"视频时长: {frame_count/fps:.2f} 秒")
+            
+        finally:
+            video_writer.release()
+        
+        return output_path
+
+
+    def create_zoom_frame(img, zoom_factor, target_h, target_w):
+        """
+        创建缩放帧
+        
+        Args:
+            img: 输入图像 (H, W, 3) numpy数组
+            zoom_factor: 缩放因子
+            target_h, target_w: 目标尺寸
+        
+        Returns:
+            numpy.ndarray: 缩放后的帧
+        """
+        h, w = img.shape[:2]
+        
+        if zoom_factor <= 1.0:
+            # 缩小：直接返回原图
+            return cv2.resize(img, (target_w, target_h))
+        
+        # 计算裁剪区域（中心裁剪）
+        crop_h = int(h / zoom_factor)
+        crop_w = int(w / zoom_factor)
+        
+        # 确保裁剪尺寸不小于1
+        crop_h = max(1, crop_h)
+        crop_w = max(1, crop_w)
+        
+        # 中心位置
+        start_h = (h - crop_h) // 2
+        start_w = (w - crop_w) // 2
+        end_h = start_h + crop_h
+        end_w = start_w + crop_w
+        
+        # 裁剪图像
+        cropped = img[start_h:end_h, start_w:end_w]
+        
+        # 放大到目标尺寸
+        zoomed = cv2.resize(cropped, (target_w, target_h), interpolation=cv2.INTER_CUBIC)
+        
+        return zoomed
+
+
+    def render_smooth_zoom_video(zoom_stack, output_path="smooth_zoom.mp4", 
+                               fps=60, total_duration=10.0, 
+                               start_scale=0, end_scale=None):
+        """
+        渲染平滑的连续缩放视频
+        
+        创建一个在整个缩放范围内平滑过渡的视频
+        
+        Args:
+            zoom_stack: ZoomStack 对象
+            output_path: 输出视频路径
+            fps: 帧率
+            total_duration: 总时长（秒）
+            start_scale: 起始尺度索引
+            end_scale: 结束尺度索引，None表示最后一层
+        
+        Returns:
+            str: 输出视频路径
+        """
+        import cv2
+        import numpy as np
+        
+        print(f"\n=== 生成平滑连续缩放视频 ===")
+        print(f"输出路径: {output_path}")
+        print(f"帧率: {fps} FPS, 时长: {total_duration}秒")
+        
+        if end_scale is None:
+            end_scale = zoom_stack.N - 1
+        
+        # 计算总帧数
+        total_frames = int(fps * total_duration)
+        H, W = zoom_stack.H, zoom_stack.W
+        
+        print(f"尺度范围: {start_scale} -> {end_scale}")
+        print(f"总帧数: {total_frames}")
+        
+        # 设置视频编写器
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        video_writer = cv2.VideoWriter(output_path, fourcc, fps, (W, H))
+        
+        if not video_writer.isOpened():
+            raise RuntimeError(f"无法创建视频文件: {output_path}")
+        
+        try:
+            for frame_idx in range(total_frames):
+                # 计算当前进度
+                progress = frame_idx / (total_frames - 1)
+                
+                # 平滑插值函数（使用sinusoidal easing）
+                smooth_progress = 0.5 * (1 - np.cos(progress * np.pi))
+                
+                # 计算当前的层索引和插值权重
+                float_layer_idx = start_scale + smooth_progress * (end_scale - start_scale)
+                layer_idx = int(float_layer_idx)
+                alpha = float_layer_idx - layer_idx
+                
+                # 确保索引在有效范围内
+                layer_idx = max(start_scale, min(layer_idx, end_scale))
+                next_layer_idx = min(layer_idx + 1, end_scale)
+                
+                # 获取当前层和下一层的图像
+                current_img = Pi_image(zoom_stack, layer_idx)
+                
+                if layer_idx != next_layer_idx and alpha > 0:
+                    # 插值两层之间
+                    next_img = Pi_image(zoom_stack, next_layer_idx)
+                    
+                    # 图像插值
+                    blended_img = (1 - alpha) * current_img + alpha * next_img
+                else:
+                    blended_img = current_img
+                
+                # 转换为numpy格式
+                blended_img_np = torch.clamp((blended_img + 1.0) / 2.0, 0.0, 1.0)
+                blended_img_np = (blended_img_np.cpu().numpy() * 255).astype(np.uint8)
+                
+                # 计算当前缩放因子
+                start_zoom = zoom_stack.get_zoom_factor(start_scale)
+                end_zoom = zoom_stack.get_zoom_factor(end_scale)
+                current_zoom = start_zoom + smooth_progress * (end_zoom - start_zoom)
+                
+                # 创建缩放帧
+                frame = create_zoom_frame(blended_img_np, current_zoom, H, W)
+                
+                # 转换为BGR并写入视频
+                frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+                video_writer.write(frame_bgr)
+                
+                # 进度打印
+                if frame_idx % (fps // 2) == 0:
+                    print(f"  帧 {frame_idx+1}/{total_frames} ({(frame_idx+1)/total_frames*100:.1f}%) - "
+                          f"层 {float_layer_idx:.2f}, 缩放 {current_zoom:.2f}x")
+            
+            print(f"\n✅ 平滑缩放视频生成完成!")
+            
+        finally:
+            video_writer.release()
+        
+        return output_path
+
+
+    def render_zoom_video_with_effects(zoom_stack, output_path="zoom_effects.mp4",
+                                      fps=30, duration_per_scale=3.0,
+                                      add_fade=True, add_zoom_burst=True,
+                                      add_text_overlay=True):
+        """
+        渲染带特效的缩放视频
+        
+        包含淡入淡出、缩放爆发效果和文字叠加
+        
+        Args:
+            zoom_stack: ZoomStack 对象
+            output_path: 输出视频路径
+            fps: 帧率
+            duration_per_scale: 每尺度持续时间
+            add_fade: 是否添加淡入淡出效果
+            add_zoom_burst: 是否添加缩放爆发效果
+            add_text_overlay: 是否添加文字叠加
+        
+        Returns:
+            str: 输出视频路径
+        """
+        import cv2
+        import numpy as np
+        
+        print(f"\n=== 生成特效缩放视频 ===")
+        print(f"特效: 淡入淡出={add_fade}, 缩放爆发={add_zoom_burst}, 文字叠加={add_text_overlay}")
+        
+        N = zoom_stack.N
+        H, W = zoom_stack.H, zoom_stack.W
+        frames_per_scale = int(fps * duration_per_scale)
+        total_frames = N * frames_per_scale
+        
+        # 设置视频编写器
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        video_writer = cv2.VideoWriter(output_path, fourcc, fps, (W, H))
+        
+        if not video_writer.isOpened():
+            raise RuntimeError(f"无法创建视频文件: {output_path}")
+        
+        try:
+            frame_count = 0
+            
+            for scale_idx in range(N):
+                print(f"\n--- 生成特效尺度 {scale_idx+1}/{N} ---")
+                
+                # 获取当前尺度图像
+                current_img = Pi_image(zoom_stack, scale_idx)
+                current_img_np = torch.clamp((current_img + 1.0) / 2.0, 0.0, 1.0)
+                current_img_np = (current_img_np.cpu().numpy() * 255).astype(np.uint8)
+                
+                zoom_factor = zoom_stack.get_zoom_factor(scale_idx)
+                
+                for frame_in_scale in range(frames_per_scale):
+                    progress = frame_in_scale / frames_per_scale
+                    
+                    # 基础缩放帧
+                    if add_zoom_burst and progress < 0.2:
+                        # 缩放爆发效果：快速缩放然后稳定
+                        burst_progress = progress / 0.2
+                        burst_zoom = zoom_factor * (1 + 0.3 * np.sin(burst_progress * np.pi * 4))
+                        frame = create_zoom_frame(current_img_np, burst_zoom, H, W)
+                    else:
+                        frame = create_zoom_frame(current_img_np, zoom_factor, H, W)
+                    
+                    # 淡入淡出效果
+                    if add_fade:
+                        if progress < 0.1:  # 淡入
+                            fade_alpha = progress / 0.1
+                            frame = (frame * fade_alpha).astype(np.uint8)
+                        elif progress > 0.9:  # 淡出
+                            fade_alpha = (1.0 - progress) / 0.1
+                            frame = (frame * fade_alpha).astype(np.uint8)
+                    
+                    # 文字叠加
+                    if add_text_overlay:
+                        text = f"Zoom: {zoom_factor}x"
+                        cv2.putText(frame, text, (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 
+                                  1.2, (255, 255, 255), 2, cv2.LINE_AA)
+                        
+                        # 添加进度条
+                        bar_width = W - 40
+                        bar_height = 10
+                        bar_x, bar_y = 20, H - 30
+                        
+                        # 背景条
+                        cv2.rectangle(frame, (bar_x, bar_y), (bar_x + bar_width, bar_y + bar_height),
+                                    (100, 100, 100), -1)
+                        
+                        # 进度条
+                        progress_width = int(bar_width * ((scale_idx * frames_per_scale + frame_in_scale) / total_frames))
+                        cv2.rectangle(frame, (bar_x, bar_y), (bar_x + progress_width, bar_y + bar_height),
+                                    (0, 255, 0), -1)
+                    
+                    # 转换为BGR并写入
+                    frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+                    video_writer.write(frame_bgr)
+                    frame_count += 1
+                    
+                    if frame_count % fps == 0:
+                        print(f"  完成 {frame_count//fps} 秒 / {total_frames//fps} 秒")
+                
+                print(f"\n✅ 特效缩放视频生成完成!")
+                
+        finally:
+            video_writer.release()
+        
+        return output_path
+
+
+    def test_zoom_video_generation():
+        """测试缩放视频生成功能"""
+        print("\n=== 测试缩放视频生成 ===")
+        
+        # 创建测试缩放栈
+        zoom_factors = [1, 2, 4, 8]
+        test_stack = create_zoom_stack(zoom_factors, H=256, W=256, device=device)
+        
+        # 创建一些测试图案
+        import numpy as np
+        for i, zoom_factor in enumerate(zoom_factors):
+            # 为每层创建不同的图案
+            test_img = torch.zeros((256, 256, 3), device=device, dtype=torch.float32)
+            
+            # 创建同心圆图案
+            center_x, center_y = 128, 128
+            for x in range(256):
+                for y in range(256):
+                    dist = ((x - center_x)**2 + (y - center_y)**2)**0.5
+                    # 不同层有不同频率的圆环
+                    ring_freq = zoom_factor
+                    intensity = 0.5 * (1 + np.sin(dist * ring_freq * 0.1))
+                    
+                    # 不同层使用不同颜色
+                    if i % 3 == 0:  # 红色为主
+                        test_img[x, y, 0] = intensity * 0.8
+                        test_img[x, y, 1] = intensity * 0.2
+                        test_img[x, y, 2] = intensity * 0.2
+                    elif i % 3 == 1:  # 绿色为主
+                        test_img[x, y, 0] = intensity * 0.2
+                        test_img[x, y, 1] = intensity * 0.8
+                        test_img[x, y, 2] = intensity * 0.2
+                    else:  # 蓝色为主
+                        test_img[x, y, 0] = intensity * 0.2
+                        test_img[x, y, 1] = intensity * 0.2
+                        test_img[x, y, 2] = intensity * 0.8
+            
+            # 归一化到[-1, 1]范围
+            test_img = test_img * 2.0 - 1.0
+            test_stack.set_layer(i, test_img)
+        
+        print("创建测试图案完成")
+        test_stack.print_info()
+        
+        # 测试1：基础缩放视频
+        try:
+            print("\n--- 测试1: 基础缩放视频 ---")
+            video_path1 = render_zoom_video(
+                test_stack, 
+                output_path="test_basic_zoom.mp4",
+                fps=20,
+                duration_per_scale=1.0,
+                smooth_transitions=True
+            )
+            print(f"✅ 基础缩放视频已保存: {video_path1}")
+        except Exception as e:
+            print(f"❌ 基础缩放视频生成失败: {e}")
+            return False
+        
+        # 测试2：平滑连续缩放视频
+        try:
+            print("\n--- 测试2: 平滑连续缩放视频 ---")
+            video_path2 = render_smooth_zoom_video(
+                test_stack,
+                output_path="test_smooth_zoom.mp4",
+                fps=30,
+                total_duration=5.0
+            )
+            print(f"✅ 平滑缩放视频已保存: {video_path2}")
+        except Exception as e:
+            print(f"❌ 平滑缩放视频生成失败: {e}")
+            return False
+        
+        # 测试3：特效缩放视频
+        try:
+            print("\n--- 测试3: 特效缩放视频 ---")
+            video_path3 = render_zoom_video_with_effects(
+                test_stack,
+                output_path="test_effects_zoom.mp4",
+                fps=24,
+                duration_per_scale=1.5,
+                add_fade=True,
+                add_zoom_burst=True,
+                add_text_overlay=True
+            )
+            print(f"✅ 特效缩放视频已保存: {video_path3}")
+        except Exception as e:
+            print(f"❌ 特效缩放视频生成失败: {e}")
+            return False
+        
+        print("\n✅ 所有缩放视频测试成功完成!")
+        print("生成的视频文件:")
+        print("  - test_basic_zoom.mp4: 基础缩放视频")
+        print("  - test_smooth_zoom.mp4: 平滑连续缩放")  
+        print("  - test_effects_zoom.mp4: 带特效缩放")
+        
+        return True
+
