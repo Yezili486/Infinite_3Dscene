@@ -1,0 +1,30 @@
+# 基础依赖
+python==3.9
+numpy==1.23.5
+torch==2.0.1+cu118
+torchvision==0.15.2+cu118
+torchaudio==2.0.2+cu118
+opencv-python==4.8.0.74
+Pillow==9.5.0
+scipy==1.10.1
+tqdm==4.65.0
+PyYAML==6.0
+logging==0.5.1.2
+argparse==1.4.0
+
+# 纹理增强相关
+basicsr==1.4.2
+facexlib==0.3.0
+realesrgan==0.3.0
+
+# 深度估计相关
+zoedepth==0.3.0
+huggingface-hub==0.14.1
+timm==0.9.2
+
+# 评估指标相关
+torchmetrics==0.11.4
+
+# 安装命令参考：
+# pip install -r requirements.txt
+# pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
