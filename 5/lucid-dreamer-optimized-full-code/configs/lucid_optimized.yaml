@@ -1,0 +1,26 @@
+# 优化后的LucidDreamer配置文件
+model:
+  use_texture_enhance: True
+  depth_loss_weight: 0.2
+  gaussian_args:
+    num_points: 100000
+    initial_scale: 0.1
+  progressive_training:
+    stage1_res: 128
+    stage1_epochs: 100
+    stage2_res: 256
+    stage2_epochs: 200
+  renderer:
+    num_samples: 128
+    background_color: [0, 0, 0]
+
+paths:
+  esrgan_model: ./pretrained/esrgan.pth
+  zoe_model: ./pretrained/zoe_depth.pth
+  base_3dgs: ./pretrained/base_3dgs.pth
+  input_dir: ./inputs/
+  output_dir: ./outputs/
+  log_dir: ./logs/
+
+device: cuda
+seed: 42
