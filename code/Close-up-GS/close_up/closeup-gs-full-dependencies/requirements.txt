@@ -1,0 +1,25 @@
+# 基础环境
+python==3.8.18
+numpy==1.21.6
+torch==1.13.1+cu118
+torchvision==0.14.1+cu118
+torchaudio==0.13.1+cu118
+Pillow==9.5.0
+opencv-python==4.7.0.72
+matplotlib==3.5.3
+
+# 3D 相关
+plyfile==0.8.1
+gaussian-splatting @ git+https://github.com/graphdeco-inria/gaussian-splatting.git@v0.1.0
+pycolmap==0.4.0  # COLMAP Python 接口
+
+# 超分与深度估计
+realesrgan==0.3.0
+zoedepth==0.3.0
+basicsr==1.4.2  # ESRGAN 依赖
+timm==0.6.12    # ZoeDepth 依赖
+
+# 其他工具
+json5==0.9.14
+tqdm==4.64.1
+    

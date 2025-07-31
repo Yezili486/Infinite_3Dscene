@@ -1,0 +1,20 @@
+{
+  "image_quality": {
+    "psnr": 27.5,
+    "psnr_pass": true,
+    "ssim": 0.89,
+    "ssim_pass": true
+  },
+  "3d_consistency": {
+    "status": "pass",
+    "average_difference": 12.3,
+    "message": "视角转换平滑，3D一致性良好"
+  },
+  "detail_preservation": {
+    "status": "pass",
+    "edge_similarity": 0.82,
+    "message": "近景细节保留良好"
+  },
+  "overall_pass": true
+}
+    

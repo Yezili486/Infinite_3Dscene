@@ -1,0 +1,21 @@
+# 基础依赖
+python==3.8
+numpy==1.21.6
+torch==1.13.1+cu118
+torchvision==0.14.1+cu118
+opencv-python==4.7.0.72
+Pillow==9.5.0
+
+# 3DGS 核心
+gaussian-splatting @ git+https://github.com/graphdeco-inria/gaussian-splatting.git
+plyfile==0.8.1
+pycolmap==0.4.0  # 点云处理
+
+# 近景增强模块
+kornia==0.6.12  # 视觉变换库（用于细节增强）
+einops==0.6.1   # 张量操作
+
+# 复用 LucidDreamer 模块
+realesrgan==0.3.0
+zoedepth==0.3.0
+    
