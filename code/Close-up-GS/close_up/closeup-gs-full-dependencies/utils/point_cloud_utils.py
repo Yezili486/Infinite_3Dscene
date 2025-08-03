@@ -12,6 +12,11 @@ def generate_point_cloud(image, depth_map, fx=500, fy=500, cx=None, cy=None):
     """
     img = np.array(image)
     h, w = depth_map.shape
+    
+    # 确保图像和深度图尺寸一致
+    if img.shape[:2] != (h, w):
+        img = np.array(Image.fromarray(img).resize((w, h)))
+    
     cx = w // 2 if cx is None else cx
     cy = h // 2 if cy is None else cy
     
@@ -28,9 +33,16 @@ def generate_point_cloud(image, depth_map, fx=500, fy=500, cx=None, cy=None):
     # 获取对应像素颜色
     colors = img[yy, xx] / 255.0  # 归一化到 [0,1]
     
+    # 确保所有数组都是相同的形状
+    x3d_flat = x3d.ravel()
+    y3d_flat = y3d.ravel()
+    z_flat = z.ravel()
+    r_flat = colors[:,:,0].ravel()
+    g_flat = colors[:,:,1].ravel()
+    b_flat = colors[:,:,2].ravel()
+    
     # 合并为点云 (x,y,z,r,g,b)
-    point_cloud = np.column_stack([x3d.ravel(), y3d.ravel(), z.ravel(), 
-                                  colors[:,0].ravel(), colors[:,1].ravel(), colors[:,2].ravel()])
+    point_cloud = np.column_stack([x3d_flat, y3d_flat, z_flat, r_flat, g_flat, b_flat])
     
     # 过滤无效点（深度为0的点）
     valid_mask = point_cloud[:, 2] > 0.1
