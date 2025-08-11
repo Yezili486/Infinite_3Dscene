@@ -1,0 +1,26 @@
+{
+  "round_0": {
+    "psnr_mean": 0.0,
+    "psnr_std": 0.0,
+    "ssim_mean": 0.0,
+    "ssim_std": 0.0,
+    "lpips_mean": 0.0,
+    "lpips_std": 0.0,
+    "dino_mean": 1.0,
+    "dino_std": 0.0,
+    "meta_iqa_mean": 0.0,
+    "meta_iqa_std": 0.0
+  },
+  "round_1": {
+    "psnr_mean": 0.0,
+    "psnr_std": 0.0,
+    "ssim_mean": 0.0,
+    "ssim_std": 0.0,
+    "lpips_mean": 0.0,
+    "lpips_std": 0.0,
+    "dino_mean": 1.0,
+    "dino_std": 0.0,
+    "meta_iqa_mean": 0.0,
+    "meta_iqa_std": 0.0
+  }
+}
