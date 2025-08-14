@@ -1,0 +1,18 @@
+{
+  "dataset_type": "real_photos",
+  "num_images": 8,
+  "image_width": 512,
+  "image_height": 512,
+  "focal_length": 1000.0,
+  "camera_center": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "object_center": [
+    0.0,
+    0.0,
+    2.0
+  ],
+  "description": "真实照片数据集，用于测试Close-up-GS模型"
+}

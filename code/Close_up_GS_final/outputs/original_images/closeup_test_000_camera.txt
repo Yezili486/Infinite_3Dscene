@@ -1,0 +1,5 @@
+Image shape: torch.Size([3, 256, 256])
+Camera center: [-0.18585059 -0.3619426  -2.9730663 ]
+Image size: 256x256
+Focal length: fx=800.00, fy=800.00
+Principal point: cx=128.00, cy=128.00

@@ -1,0 +1,35 @@
+2025-08-14 18:29:28 [INFO] Logging to file: outputs\closeup_gs_20250814_182928.log
+2025-08-14 18:29:28 [INFO] GPU: NVIDIA GeForce RTX 3070 Ti Laptop GPU
+2025-08-14 18:29:28 [INFO] NVIDIA RTX 3070Ti detected - applying optimizations
+2025-08-14 18:29:28 [INFO] Automatic Mixed Precision enabled for 3070Ti
+2025-08-14 18:29:28 [INFO] GPU memory fraction set to 0.85
+2025-08-14 18:29:28 [INFO] Close-up-GS Training initialized
+2025-08-14 18:29:28 [INFO] Device: cuda:0
+2025-08-14 18:29:28 [INFO] Debug mode: True
+2025-08-14 18:29:28 [INFO] Batch size: 1
+2025-08-14 18:29:28 [INFO] LPIPS metric initialized
+2025-08-14 18:29:28 [WARNING] DINO not available. Install dino-vit-features for no-reference evaluation
+2025-08-14 18:29:28 [INFO] === Starting Complete Close-up-GS Training ===
+2025-08-14 18:29:28 [INFO] Step 7.1: Loading dataset...
+2025-08-14 18:29:28 [INFO] Loaded synthetic dataset: 3 samples
+2025-08-14 18:29:28 [INFO] Dataset statistics:
+2025-08-14 18:29:28 [INFO]   Total samples: 3
+2025-08-14 18:29:28 [INFO]   Training views: 3
+2025-08-14 18:29:28 [INFO]   Close-up test samples: 3
+2025-08-14 18:29:28 [INFO] Step 7.2: Initial GSModel optimization (30000 iterations)...
+2025-08-14 18:29:28 [INFO] ProgressiveTrainer initialized
+2025-08-14 18:29:28 [INFO]   Rounds: 3
+2025-08-14 18:29:28 [INFO]   Scales: [3, 9, 27]
+2025-08-14 18:29:28 [INFO]   Anchor count: 5
+2025-08-14 18:29:28 [INFO]   Update count: 8
+2025-08-14 18:29:29 [INFO] CloseupGS Trainer initialized
+2025-08-14 18:29:29 [INFO]   Training views: 3
+2025-08-14 18:29:29 [INFO]   Close-up test views: 3
+2025-08-14 18:29:29 [INFO]   Baseline iterations: 30000
+2025-08-14 18:29:29 [INFO]   Refinement iterations: 10000
+2025-08-14 18:29:29 [INFO]   Fine-tuning iterations: 5000
+2025-08-14 18:29:29 [INFO] Starting baseline GSModel training...
+2025-08-14 18:29:29 [INFO] Phase 1: Training baseline GSModel (30000 iterations)
+2025-08-14 18:29:32 [INFO] Baseline iter 0: loss=0.578436, gaussians=600
+2025-08-14 18:29:38 [INFO] Eval baseline: {'psnr': 3.3088833491007485, 'ssim': 0.3663000563780467, 'lpips': 0.9632305900255839}
+2025-08-14 18:29:38 [INFO] Checkpoint saved: outputs\closeup_gs_baseline_best.pth

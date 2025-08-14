@@ -1,0 +1,321 @@
+# Complete Close-up-GS Configuration
+# Integrates GSModel baseline and CloseupRefiner for high-quality close-up view synthesis
+
+# Dataset configuration
+data:
+  target_resolution: [512, 512]  # Avoid channel mismatch
+  data_device: 'cuda'
+  
+# GSModel baseline configuration (Step 3)
+gs_model:
+  max_gaussians: 100000
+  sh_degree: 3
+  densify_threshold: 0.3333333333333333  # 1/3 as per paper section 4.3.4
+
+# CloseupRefiner configuration (Step 4)
+closeup_refiner:
+  # Core parameters
+  use_supir: true
+  handle_channel_mismatch: true
+  target_resolution: [512, 512]
+  
+  # Reliable pixel mask parameters (method [33])
+  reliable_threshold: 0.95
+  geo_consistency_threshold: 0.1
+  min_views_agreement: 2
+  
+  # See3D integration parameters
+  use_super_resolution: true
+  sr_factor: 2
+  
+  # Channel projection for U-Net compatibility
+  projection_layers:
+    enabled: true
+    # Handle common channel mismatches
+    # e.g., 1152 -> 2048 as mentioned in paper
+    
+# Training pipeline configuration (Optimized for batch_size=1)
+training:
+  # Phase 1: Baseline GSModel (30K iterations from training views Vs)
+  baseline_iterations: 30000  # Paper section 5.2
+  baseline_lr:
+    position: 0.00016
+    position_final: 0.0000016
+    feature: 0.0025
+    opacity: 0.05
+    scaling: 0.005
+    rotation: 0.001
+  
+  # Batch size optimization (RTX 3070Ti with 8GB memory)
+  batch_size: 1              # Optimal for RTX 3070Ti memory constraints
+  effective_batch_size: 1    # No gradient accumulation needed
+  dataloader_workers: 2      # Reduced workers for 3070Ti (saves memory)
+  pin_memory: false         # Disable pin memory to save system RAM
+  
+  # Phase 2: CloseupRefiner training
+  refinement_iterations: 10000
+  refinement_lr: 0.0001
+  
+  # Phase 3: End-to-end fine-tuning
+  finetune_iterations: 5000
+  finetune_lr: 0.00005
+  
+  # Densification (only when distance < 1/3)
+  densify_from_iter: 500
+  densify_until_iter: 15000
+  densification_interval: 100
+  densify_grad_threshold: 0.0002
+  opacity_reset_interval: 3000
+
+# Loss function configuration
+loss:
+  # GSModel baseline loss (Equation 4)
+  lambda_ssim: 0.2  # L1 + λ SSIM
+  
+  # CloseupRefiner loss
+  refinement_l1_weight: 0.8
+  refinement_ssim_weight: 0.2
+
+# See3D integration parameters
+see3d:
+  # Super-resolution parameters
+  sr_factor: 2
+  use_guided_enhancement: true
+  reference_weight: 0.3  # Weight for reference image guidance
+  
+  # Model parameters
+  model_type: 'simple_upsampler'  # Can be replaced with actual See3D model
+  
+# SUPIR post-processing parameters
+supir:
+  enabled: true
+  enhancement_factor: 2
+  detail_preservation: 0.8
+  
+# Evaluation configuration
+evaluation:
+  eval_interval: 2000
+  metrics: ['psnr', 'ssim', 'lpips']
+  num_test_samples: 5  # Number of close-up views to evaluate
+  
+# Logging configuration
+logging:
+  use_tensorboard: true
+  use_wandb: false
+  log_interval: 500
+  save_interval: 5000
+  
+  # Detailed logging for each phase
+  log_phases:
+    baseline: true
+    refinement: true
+    finetune: true
+
+# Output configuration
+output:
+  output_dir: './outputs/closeup_gs'
+  save_rendered_images: true
+  save_intermediate_results: true
+  
+  # Checkpoint management
+  save_best_model: true
+  save_phase_models: true
+  
+# Hardware configuration (Optimized for NVIDIA RTX 3070Ti)
+device:
+  use_cuda: true
+  gpu_id: 0
+  mixed_precision: true    # Enable AMP for 3070Ti memory efficiency
+  
+  # RTX 3070Ti specific optimizations
+  cudnn_benchmark: true     # Enable cuDNN benchmarking for consistent workloads
+  tf32_matmul: false       # Disable TF32 (3070Ti has limited TF32 support)
+  tf32_cudnn: false        # Disable TF32 for cuDNN
+  memory_fraction: 0.85    # Use 85% of GPU memory (3070Ti has 8GB)
+  
+  # Memory management (3070Ti optimized)
+  empty_cache_interval: 500   # Clear CUDA cache more frequently (8GB memory)
+  gradient_accumulation: 1    # No gradient accumulation needed with batch_size=1
+  max_memory_allocated: 7.5   # Maximum memory allocation in GB
+  
+  # Optimization flags (3070Ti compatible)
+  torch_compile: false     # Disable torch.compile for compatibility
+  flash_attention: false   # Disable flash attention if not needed
+  amp_enabled: true        # Enable Automatic Mixed Precision for memory efficiency
+
+# Close-up specific parameters
+closeup:
+  # View selection criteria
+  closeup_distance_threshold: 2.0  # Distance to object center
+  min_closeup_views: 3
+  max_reference_views: 3
+  
+  # Quality enhancement
+  detail_enhancement: true
+  adaptive_density: true
+  
+  # Geometric consistency (method [33])
+  use_geometric_consistency: true
+  consistency_threshold: 0.1
+  smoothing_kernel_size: 5
+  smoothing_sigma: 1.0
+
+# View Selection Configuration (Step 5: Paper Section 4.3.1-4.3.2)
+view_selection:
+  # Smart view selection parameters
+  enabled: true
+  
+  # Anchor view selection (Algorithm 1, Appendix A)
+  anchor_selection:
+    k_anchors: 5  # Number of anchor views to select
+    max_iterations: 1000  # Greedy optimization iterations
+    
+  # To-be-updated view selection (Section 4.3.2)
+  update_selection:
+    max_update_views: 5  # Maximum views to select for updating
+    k_candidates: 3  # Number of candidate views to update
+    
+  # Coverage calculation (w_i: pixel overlap, center-weighted)
+  coverage:
+    center_weight_decay: 2.0  # Decay factor for center weighting
+    overlap_threshold: 0.1  # Minimum overlap to consider
+    angular_decay: 1.5708  # π/2 - decay angle for viewing direction
+    
+  # Similarity calculation (E matrix)
+  similarity:
+    direction_weight: 0.7  # Weight for viewing direction similarity
+    position_weight: 0.3  # Weight for camera position similarity
+    distance_decay: 1.0  # Decay factor for position similarity
+    
+  # Distance discount factor β (Appendix C)
+  distance_discount:
+    beta: 0.8  # Exponential discount factor
+    enabled: true
+    
+  # Optimization objective: max s^T w - s^T E s
+  optimization:
+    coverage_weight: 1.0  # Weight for coverage term
+    similarity_penalty: 1.0  # Weight for similarity penalty
+    convergence_threshold: 1e-6  # Convergence threshold for optimization
+    
+  # Dynamic view selection during training
+  dynamic_selection:
+    enabled: true
+    start_iteration: 1000  # When to start dynamic selection
+    max_training_views_per_iter: 10  # Max views per training iteration
+    quality_weight: 0.3  # Weight for rendering quality in selection
+    distance_weight: 0.4  # Weight for distance to target
+    coverage_weight: 0.3  # Weight for Gaussian coverage
+
+# Progressive Self-Training Configuration (Step 6: Paper Section 4.3, Figure 2)
+progressive_training:
+  # Main progressive parameters
+  enabled: true
+  rounds: 3                    # Number of progressive rounds
+  scales: [3, 9, 27]          # Scale factors α_t for each round
+  
+  # View selection parameters (3070Ti optimized)
+  anchor_count: 3             # Reduced anchor views for memory efficiency (was 5)
+  update_count: 4             # Reduced update views for memory efficiency (was 8)
+  num_frontier_views: 8       # Reduced frontier views (was 12)
+  
+  # Fine-tuning parameters (3070Ti optimized)
+  finetune_iterations: 3000   # Reduced iterations per round (was 5000)
+  densify_threshold: 0.3333   # Distance threshold for densification (1/3)
+  
+  # Reliable pixel parameters
+  reliable_threshold: 0.95    # Threshold for reliable pixel mask
+  geometric_consistency_threshold: 0.1  # Geometric consistency threshold
+  intensity_threshold: 0.5    # Intensity difference threshold
+  
+  # Frontier view generation
+  frontier_elevation: 1.047   # π/3 - elevation angle for frontier views
+  frontier_distance_factor: 1.0  # Factor for frontier distance calculation
+  
+  # Loss weighting for progressive training
+  loss_weights:
+    l1_weight: 0.8           # L1 loss weight
+    ssim_weight: 0.2         # SSIM loss weight
+  
+  # Optimizer parameters for progressive fine-tuning
+  optimizer:
+    centers_lr: 0.00016      # Learning rate for Gaussian centers
+    sh_lr: 0.0025           # Learning rate for SH coefficients
+    opacity_lr: 0.05        # Learning rate for opacity
+    scaling_lr: 0.005       # Learning rate for scaling
+    rotation_lr: 0.001      # Learning rate for rotation
+  
+  # Densification and pruning schedule
+  densification:
+    start_iter: 500         # Start densification iteration
+    end_iter: 3000          # End densification iteration
+    interval: 100           # Densification interval
+    opacity_reset_interval: 3000  # Opacity reset interval
+    pruning_interval: 1000  # Pruning interval
+  
+  # Logging and evaluation
+  log_interval: 1000        # Logging interval during fine-tuning
+  eval_interval: 2000       # Evaluation interval
+  save_intermediate: true   # Save intermediate results
+
+# Data augmentation for training
+augmentation:
+  enabled: true
+  brightness_range: [0.9, 1.1]
+  contrast_range: [0.9, 1.1]
+  color_jitter_prob: 0.3
+  
+# Memory optimization
+memory:
+  gradient_checkpointing: false
+  batch_accumulation: 1
+  max_gaussian_batch: 10000
+  
+# Validation configuration
+validation:
+  enabled: true
+  val_interval: 1000
+  val_metrics: ['psnr', 'ssim']
+  early_stopping_patience: 10
+
+# Debugging options (Enhanced for Step 7)
+debug:
+  save_intermediate_masks: false
+  save_warped_images: false
+  verbose_logging: false
+  profile_performance: false
+  
+  # Tensor shape debugging (avoid RuntimeError)
+  print_tensor_shapes: true    # Print tensor shapes during forward pass
+  validate_shapes: true        # Validate tensor shapes at key points
+  memory_monitoring: true      # Monitor GPU memory usage
+  
+  # Channel mismatch debugging
+  check_channel_compatibility: true  # Check channel compatibility
+  auto_fix_channels: true           # Automatically fix channel mismatches
+  
+  # Performance profiling
+  profile_training_phases: false   # Profile each training phase
+  log_iteration_times: false      # Log per-iteration timing
+
+# Evaluation configuration (Enhanced for Step 7)
+evaluation:
+  eval_interval: 2000
+  metrics: ['psnr', 'ssim', 'lpips', 'dino']  # Added DINO for no-GT evaluation
+  num_test_samples: 5  # Number of close-up views to evaluate
+  
+  # Metrics with ground truth (Paper Section 5.1)
+  with_gt:
+    psnr: true
+    ssim: true
+    lpips: true
+    
+  # Metrics without ground truth (Paper Section 5.1)
+  without_gt:
+    dino: true          # DINO feature similarity
+    meta_iqa: false     # MetaIQA quality assessment (requires model)
+    
+  # Evaluation settings
+  save_rendered_images: true      # Save rendered test images
+  save_comparison_grids: true     # Save GT vs rendered comparisons
+  compute_per_view_metrics: true  # Compute metrics for each test view

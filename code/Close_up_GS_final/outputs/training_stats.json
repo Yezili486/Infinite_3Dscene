@@ -1,0 +1,52 @@
+{
+  "start_time": 1755177315.3413303,
+  "phases": {
+    "initial_optimization": {
+      "duration": 8.636370658874512,
+      "iterations": 10,
+      "final_gaussians": 200
+    },
+    "progressive_update": {
+      "duration": 92.25627183914185,
+      "rounds": 3,
+      "stats": {
+        "total_rounds": 3,
+        "total_refined_views": 24,
+        "total_frontier_views": 36,
+        "average_psnr": Infinity,
+        "average_ssim": 0.9999119093020757,
+        "scale_factors": [
+          3,
+          9,
+          27
+        ],
+        "final_loss": 0.03999999910593033
+      }
+    }
+  },
+  "final_metrics": {
+    "with_gt": {
+      "psnr": 3.311793565750122,
+      "ssim": 0.8500000238418579,
+      "lpips": 0.9542889595031738,
+      "num_samples": 1
+    },
+    "without_gt": {
+      "dino_similarity": null,
+      "num_samples": 1
+    },
+    "per_view": [
+      {
+        "view_idx": 0,
+        "with_gt": {
+          "psnr": 3.311793565750122,
+          "ssim": 0.8500000238418579,
+          "lpips": 0.9542889595031738
+        },
+        "without_gt": {
+          "meta_iqa": null
+        }
+      }
+    ]
+  }
+}

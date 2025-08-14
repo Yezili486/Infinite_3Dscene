@@ -1,0 +1,45 @@
+# Close-up-GS Requirements
+# Core dependencies
+torch>=2.0.0
+torchvision>=0.15.0
+numpy>=1.21.0
+opencv-python>=4.5.0
+pillow>=8.0.0
+
+# 3D Graphics and Gaussian Splatting
+plyfile>=0.7.4
+scipy>=1.7.0
+scikit-image>=0.18.0
+
+# Machine Learning and Computer Vision
+diffusers>=0.21.0
+transformers>=4.21.0
+accelerate>=0.20.0
+
+# Super Resolution
+SUPIR
+
+# Visualization and Logging
+matplotlib>=3.5.0
+tensorboard>=2.8.0
+wandb>=0.13.0
+tqdm>=4.62.0
+
+# Configuration and Utilities
+pyyaml>=6.0
+omegaconf>=2.3.0
+rich>=12.0.0
+
+# Image and Video Processing
+imageio>=2.9.0
+imageio-ffmpeg>=0.4.7
+ffmpeg-python>=0.2.0
+
+# Development and Testing
+pytest>=7.0.0
+black>=22.0.0
+flake8>=4.0.0
+
+# Optional: For better performance
+# ninja  # For faster compilation
+# einops>=0.6.0  # For tensor operations

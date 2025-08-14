@@ -1,0 +1,71 @@
+# Default configuration for Close-up-GS
+# Close-up Gaussian Splatting for High-Resolution View Synthesis
+
+# Model parameters
+model:
+  max_gaussians: 100000
+  feature_dim: 32
+  sh_degree: 3
+  closeup_threshold: 2.0
+
+# Training parameters
+training:
+  learning_rate: 0.001
+  batch_size: 1
+  max_epochs: 100
+  warmup_epochs: 10
+  save_interval: 10
+  
+  # Optimization parameters
+  position_lr_init: 0.00016
+  position_lr_final: 0.0000016
+  position_lr_delay_mult: 0.01
+  position_lr_max_steps: 30000
+  feature_lr: 0.0025
+  opacity_lr: 0.05
+  scaling_lr: 0.005
+  rotation_lr: 0.001
+
+# Densification parameters
+densification:
+  densification_interval: 100
+  opacity_reset_interval: 3000
+  densify_from_iter: 500
+  densify_until_iter: 15000
+  densify_grad_threshold: 0.0002
+  min_opacity: 0.005
+  percent_dense: 0.01
+
+# Rendering parameters
+rendering:
+  white_background: true
+  debug: false
+
+# Data parameters
+data:
+  data_device: 'cuda'
+  eval: false
+  resolution: -1
+  images: 'images'
+  resolution_scales: [1.0]
+
+# Close-up specific parameters
+closeup:
+  detail_enhancement: true
+  adaptive_density: true
+  super_resolution: false
+  sr_factor: 2
+
+# Loss function parameters
+loss:
+  lambda_dssim: 0.2
+
+# Logging parameters
+logging:
+  use_tensorboard: true
+  use_wandb: false
+  log_interval: 100
+
+# Output parameters
+output:
+  output_dir: './outputs'

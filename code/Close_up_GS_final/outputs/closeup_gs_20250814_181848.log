@@ -1,0 +1,35 @@
+2025-08-14 18:18:48 [INFO] Logging to file: outputs\closeup_gs_20250814_181848.log
+2025-08-14 18:18:48 [INFO] GPU: NVIDIA GeForce RTX 3070 Ti Laptop GPU
+2025-08-14 18:18:48 [INFO] NVIDIA RTX 3070Ti detected - applying optimizations
+2025-08-14 18:18:48 [INFO] Automatic Mixed Precision enabled for 3070Ti
+2025-08-14 18:18:48 [INFO] GPU memory fraction set to 0.85
+2025-08-14 18:18:48 [INFO] Close-up-GS Training initialized
+2025-08-14 18:18:48 [INFO] Device: cuda:0
+2025-08-14 18:18:48 [INFO] Debug mode: True
+2025-08-14 18:18:48 [INFO] Batch size: 1
+2025-08-14 18:18:49 [INFO] LPIPS metric initialized
+2025-08-14 18:18:49 [WARNING] DINO not available. Install dino-vit-features for no-reference evaluation
+2025-08-14 18:18:49 [INFO] === Starting Complete Close-up-GS Training ===
+2025-08-14 18:18:49 [INFO] Step 7.1: Loading dataset...
+2025-08-14 18:18:49 [INFO] Loaded synthetic dataset: 5 samples
+2025-08-14 18:18:49 [INFO] Dataset statistics:
+2025-08-14 18:18:49 [INFO]   Total samples: 5
+2025-08-14 18:18:49 [INFO]   Training views: 5
+2025-08-14 18:18:49 [INFO]   Close-up test samples: 5
+2025-08-14 18:18:49 [INFO] Step 7.2: Initial GSModel optimization (30000 iterations)...
+2025-08-14 18:18:49 [INFO] ProgressiveTrainer initialized
+2025-08-14 18:18:49 [INFO]   Rounds: 3
+2025-08-14 18:18:49 [INFO]   Scales: [3, 9, 27]
+2025-08-14 18:18:49 [INFO]   Anchor count: 5
+2025-08-14 18:18:49 [INFO]   Update count: 8
+2025-08-14 18:18:49 [INFO] CloseupGS Trainer initialized
+2025-08-14 18:18:49 [INFO]   Training views: 5
+2025-08-14 18:18:49 [INFO]   Close-up test views: 5
+2025-08-14 18:18:49 [INFO]   Baseline iterations: 30000
+2025-08-14 18:18:49 [INFO]   Refinement iterations: 10000
+2025-08-14 18:18:49 [INFO]   Fine-tuning iterations: 5000
+2025-08-14 18:18:49 [INFO] Starting baseline GSModel training...
+2025-08-14 18:18:49 [INFO] Phase 1: Training baseline GSModel (30000 iterations)
+2025-08-14 18:18:54 [INFO] Baseline iter 0: loss=0.578603, gaussians=1000
+2025-08-14 18:18:57 [ERROR] Initial optimization failed: expected scalar type Double but found Float
+2025-08-14 18:18:57 [ERROR] Training pipeline failed: expected scalar type Double but found Float

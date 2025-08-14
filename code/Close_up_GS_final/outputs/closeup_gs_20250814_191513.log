@@ -1,0 +1,72 @@
+2025-08-14 19:15:13 [INFO] Logging to file: outputs\closeup_gs_20250814_191513.log
+2025-08-14 19:15:13 [INFO] GPU: NVIDIA GeForce RTX 3070 Ti Laptop GPU
+2025-08-14 19:15:13 [INFO] NVIDIA RTX 3070Ti detected - applying optimizations
+2025-08-14 19:15:13 [INFO] Automatic Mixed Precision enabled for 3070Ti
+2025-08-14 19:15:13 [INFO] GPU memory fraction set to 0.85
+2025-08-14 19:15:13 [INFO] Close-up-GS Training initialized
+2025-08-14 19:15:13 [INFO] Device: cuda:0
+2025-08-14 19:15:13 [INFO] Debug mode: True
+2025-08-14 19:15:13 [INFO] Batch size: 1
+2025-08-14 19:15:13 [INFO] LPIPS metric initialized
+2025-08-14 19:15:13 [WARNING] DINO not available. Install dino-vit-features for no-reference evaluation
+2025-08-14 19:15:13 [INFO] === Starting Complete Close-up-GS Training ===
+2025-08-14 19:15:13 [INFO] Step 7.1: Loading dataset...
+2025-08-14 19:15:13 [INFO] Loaded synthetic dataset: 5 samples
+2025-08-14 19:15:13 [INFO] Dataset statistics:
+2025-08-14 19:15:13 [INFO]   Total samples: 5
+2025-08-14 19:15:13 [INFO]   Training views: 5
+2025-08-14 19:15:13 [INFO]   Close-up test samples: 5
+2025-08-14 19:15:13 [INFO] Step 7.2: Initial GSModel optimization (100 iterations)...
+2025-08-14 19:15:13 [INFO] ProgressiveTrainer initialized
+2025-08-14 19:15:13 [INFO]   Rounds: 3
+2025-08-14 19:15:13 [INFO]   Scales: [3, 9, 27]
+2025-08-14 19:15:13 [INFO]   Anchor count: 5
+2025-08-14 19:15:13 [INFO]   Update count: 8
+2025-08-14 19:15:14 [INFO] CloseupGS Trainer initialized
+2025-08-14 19:15:14 [INFO]   Training views: 5
+2025-08-14 19:15:14 [INFO]   Close-up test views: 5
+2025-08-14 19:15:14 [INFO]   Baseline iterations: 100
+2025-08-14 19:15:14 [INFO]   Refinement iterations: 50
+2025-08-14 19:15:14 [INFO]   Fine-tuning iterations: 50
+2025-08-14 19:15:14 [INFO] Starting baseline GSModel training...
+2025-08-14 19:15:14 [INFO] Phase 1: Training baseline GSModel (100 iterations)
+2025-08-14 19:15:18 [INFO] Baseline iter 0: loss=0.578436, gaussians=1000
+2025-08-14 19:21:39 [INFO] Checkpoint saved: outputs\closeup_gs_baseline_final.pth
+2025-08-14 19:21:39 [INFO] Baseline training completed in 385.4s
+2025-08-14 19:21:39 [INFO] Initial optimization completed in 385.9s
+2025-08-14 19:21:39 [INFO] Final Gaussians count: 1000
+2025-08-14 19:21:39 [INFO] Step 7.3: Progressive update (3 rounds)...
+2025-08-14 19:21:39 [INFO] Starting progressive self-training...
+2025-08-14 19:21:39 [INFO] Starting progressive update: 3 rounds
+2025-08-14 19:21:39 [INFO] Scales: [3, 9, 27]
+2025-08-14 19:21:39 [INFO] Initial training views: 5
+2025-08-14 19:21:39 [INFO] 
+=== Progressive Round 1/3 ===
+2025-08-14 19:21:39 [INFO] Scale factor: 3
+2025-08-14 19:21:39 [DEBUG] Base distance: 3.778
+2025-08-14 19:21:39 [DEBUG] Frontier distance threshold: 1.259
+2025-08-14 19:21:39 [INFO] Step 1: Set 12 frontier views
+2025-08-14 19:21:39 [DEBUG] Anchor selection objective: -9.3609
+2025-08-14 19:21:39 [INFO] Step 2: Selected 5 anchor views: [0, 1, 2, 3, 4]
+2025-08-14 19:21:39 [DEBUG] Update selection objective: -34.0204
+2025-08-14 19:21:39 [INFO] Step 3: Selected 8 views to update
+2025-08-14 19:21:42 [DEBUG] Rendered view 1/8: torch.Size([3, 512, 512])
+2025-08-14 19:21:54 [WARNING] Refinement failed for view 0: The size of tensor a (512) must match the size of tensor b (256) at non-singleton dimension 2
+2025-08-14 19:21:57 [DEBUG] Rendered view 2/8: torch.Size([3, 512, 512])
+2025-08-14 19:22:08 [WARNING] Refinement failed for view 1: The size of tensor a (512) must match the size of tensor b (256) at non-singleton dimension 2
+2025-08-14 19:22:11 [DEBUG] Rendered view 3/8: torch.Size([3, 512, 512])
+2025-08-14 19:22:22 [WARNING] Refinement failed for view 2: The size of tensor a (512) must match the size of tensor b (256) at non-singleton dimension 2
+2025-08-14 19:22:25 [DEBUG] Rendered view 4/8: torch.Size([3, 512, 512])
+2025-08-14 19:22:36 [WARNING] Refinement failed for view 3: The size of tensor a (512) must match the size of tensor b (256) at non-singleton dimension 2
+2025-08-14 19:22:39 [DEBUG] Rendered view 5/8: torch.Size([3, 512, 512])
+2025-08-14 19:22:50 [WARNING] Refinement failed for view 4: The size of tensor a (512) must match the size of tensor b (256) at non-singleton dimension 2
+2025-08-14 19:22:53 [DEBUG] Rendered view 6/8: torch.Size([3, 512, 512])
+2025-08-14 19:23:04 [WARNING] Refinement failed for view 5: The size of tensor a (512) must match the size of tensor b (256) at non-singleton dimension 2
+2025-08-14 19:23:08 [DEBUG] Rendered view 7/8: torch.Size([3, 512, 512])
+2025-08-14 19:23:18 [WARNING] Refinement failed for view 6: The size of tensor a (512) must match the size of tensor b (256) at non-singleton dimension 2
+2025-08-14 19:23:21 [DEBUG] Rendered view 8/8: torch.Size([3, 512, 512])
+2025-08-14 19:23:33 [WARNING] Refinement failed for view 7: The size of tensor a (512) must match the size of tensor b (256) at non-singleton dimension 2
+2025-08-14 19:23:33 [INFO] Step 4: Rendered and refined 8 images
+2025-08-14 19:23:33 [INFO] Fine-tuning model with 8 refined images
+2025-08-14 19:23:40 [ERROR] Progressive update failed: CUDA out of memory. Tried to allocate 2.00 MiB (GPU 0; 8.00 GiB total capacity; 6.79 GiB already allocated; 0 bytes free; 6.80 GiB allowed; 6.80 GiB reserved in total by PyTorch) If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation.  See documentation for Memory Management and PYTORCH_CUDA_ALLOC_CONF
+2025-08-14 19:23:40 [ERROR] Training pipeline failed: CUDA out of memory. Tried to allocate 2.00 MiB (GPU 0; 8.00 GiB total capacity; 6.79 GiB already allocated; 0 bytes free; 6.80 GiB allowed; 6.80 GiB reserved in total by PyTorch) If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation.  See documentation for Memory Management and PYTORCH_CUDA_ALLOC_CONF

@@ -1,0 +1,34 @@
+2025-08-14 17:49:22 [INFO] Logging to file: outputs\closeup_gs_20250814_174922.log
+2025-08-14 17:49:22 [INFO] GPU: NVIDIA GeForce RTX 3070 Ti Laptop GPU
+2025-08-14 17:49:22 [INFO] NVIDIA RTX 3070Ti detected - applying optimizations
+2025-08-14 17:49:22 [INFO] Automatic Mixed Precision enabled for 3070Ti
+2025-08-14 17:49:22 [INFO] GPU memory fraction set to 0.85
+2025-08-14 17:49:22 [INFO] Close-up-GS Training initialized
+2025-08-14 17:49:22 [INFO] Device: cuda:0
+2025-08-14 17:49:22 [INFO] Debug mode: True
+2025-08-14 17:49:22 [INFO] Batch size: 1
+2025-08-14 17:49:22 [WARNING] LPIPS not available. Install with: pip install lpips
+2025-08-14 17:49:22 [WARNING] DINO not available. Install dino-vit-features for no-reference evaluation
+2025-08-14 17:49:22 [INFO] === Starting Complete Close-up-GS Training ===
+2025-08-14 17:49:22 [INFO] Step 7.1: Loading dataset...
+2025-08-14 17:49:22 [INFO] Loaded synthetic dataset: 3 samples
+2025-08-14 17:49:22 [INFO] Dataset statistics:
+2025-08-14 17:49:22 [INFO]   Total samples: 3
+2025-08-14 17:49:22 [INFO]   Training views: 3
+2025-08-14 17:49:22 [INFO]   Close-up test samples: 3
+2025-08-14 17:49:22 [INFO] Step 7.2: Initial GSModel optimization (30000 iterations)...
+2025-08-14 17:49:22 [INFO] ProgressiveTrainer initialized
+2025-08-14 17:49:22 [INFO]   Rounds: 3
+2025-08-14 17:49:22 [INFO]   Scales: [3, 9, 27]
+2025-08-14 17:49:22 [INFO]   Anchor count: 5
+2025-08-14 17:49:22 [INFO]   Update count: 8
+2025-08-14 17:49:22 [INFO] CloseupGS Trainer initialized
+2025-08-14 17:49:22 [INFO]   Training views: 3
+2025-08-14 17:49:22 [INFO]   Close-up test views: 3
+2025-08-14 17:49:22 [INFO]   Baseline iterations: 30000
+2025-08-14 17:49:22 [INFO]   Refinement iterations: 10000
+2025-08-14 17:49:22 [INFO]   Fine-tuning iterations: 5000
+2025-08-14 17:49:22 [INFO] Starting baseline GSModel training...
+2025-08-14 17:49:22 [INFO] Phase 1: Training baseline GSModel (30000 iterations)
+2025-08-14 17:49:22 [ERROR] Initial optimization failed: Expected all tensors to be on the same device, but found at least two devices, cpu and cuda:0! (when checking argument for argument mat2 in method wrapper_CUDA_mm)
+2025-08-14 17:49:22 [ERROR] Training pipeline failed: Expected all tensors to be on the same device, but found at least two devices, cpu and cuda:0! (when checking argument for argument mat2 in method wrapper_CUDA_mm)

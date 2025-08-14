@@ -1,0 +1,53 @@
+2025-08-14 20:38:53 [INFO] Logging to file: outputs\closeup_gs_20250814_203853.log
+2025-08-14 20:38:53 [INFO] GPU: NVIDIA GeForce RTX 3070 Ti Laptop GPU
+2025-08-14 20:38:53 [INFO] NVIDIA RTX 3070Ti detected - applying optimizations
+2025-08-14 20:38:53 [INFO] Automatic Mixed Precision enabled for 3070Ti
+2025-08-14 20:38:53 [INFO] Applied aggressive memory management for RTX 3070Ti
+2025-08-14 20:38:53 [INFO] GPU memory fraction set to 0.75
+2025-08-14 20:38:54 [INFO] Applied additional memory optimizations for 8GB GPU
+2025-08-14 20:38:54 [INFO] Close-up-GS Training initialized
+2025-08-14 20:38:54 [INFO] Device: cuda:0
+2025-08-14 20:38:54 [INFO] Debug mode: True
+2025-08-14 20:38:54 [INFO] Batch size: 1
+2025-08-14 20:38:54 [INFO] LPIPS metric initialized
+2025-08-14 20:38:54 [WARNING] DINO not available. Install dino-vit-features for no-reference evaluation
+2025-08-14 20:38:54 [INFO] === Starting Complete Close-up-GS Training ===
+2025-08-14 20:38:54 [INFO] Step 7.1: Loading dataset...
+2025-08-14 20:38:54 [INFO] Loaded synthetic dataset: 1 samples
+2025-08-14 20:38:54 [INFO] Dataset statistics:
+2025-08-14 20:38:54 [INFO]   Total samples: 1
+2025-08-14 20:38:54 [INFO]   Training views: 1
+2025-08-14 20:38:54 [INFO]   Close-up test samples: 1
+2025-08-14 20:38:54 [INFO] Step 7.2: Initial GSModel optimization (10 iterations)...
+2025-08-14 20:38:54 [INFO] ProgressiveTrainer initialized
+2025-08-14 20:38:54 [INFO]   Rounds: 3
+2025-08-14 20:38:54 [INFO]   Scales: [3, 9, 27]
+2025-08-14 20:38:54 [INFO]   Anchor count: 5
+2025-08-14 20:38:54 [INFO]   Update count: 8
+2025-08-14 20:38:54 [INFO] CloseupGS Trainer initialized
+2025-08-14 20:38:54 [INFO]   Device: cuda:0
+2025-08-14 20:38:54 [INFO]   Training views: 1
+2025-08-14 20:38:54 [INFO]   Close-up test views: 1
+2025-08-14 20:38:54 [INFO]   Baseline iterations: 10
+2025-08-14 20:38:54 [INFO]   Refinement iterations: 5
+2025-08-14 20:38:54 [INFO]   Fine-tuning iterations: 5
+2025-08-14 20:38:54 [INFO] Starting baseline GSModel training...
+2025-08-14 20:38:54 [INFO] Phase 1: Training baseline GSModel (10 iterations)
+2025-08-14 20:38:55 [INFO] Baseline iter 0: loss=0.578603, gaussians=200
+2025-08-14 20:39:03 [INFO] Checkpoint saved: outputs\closeup_gs_baseline_final.pth
+2025-08-14 20:39:03 [INFO] Baseline training completed in 8.5s
+2025-08-14 20:39:03 [INFO] Initial optimization completed in 8.9s
+2025-08-14 20:39:03 [INFO] Final Gaussians count: 200
+2025-08-14 20:39:03 [INFO] Step 7.3: Progressive update (3 rounds)...
+2025-08-14 20:39:03 [INFO] Starting progressive self-training...
+2025-08-14 20:39:03 [INFO] Starting progressive update: 3 rounds
+2025-08-14 20:39:03 [INFO] Scales: [3, 9, 27]
+2025-08-14 20:39:03 [INFO] Initial training views: 1
+2025-08-14 20:39:03 [INFO] 
+=== Progressive Round 1/3 ===
+2025-08-14 20:39:03 [INFO] Scale factor: 3
+2025-08-14 20:39:03 [DEBUG] Base distance: 3.179
+2025-08-14 20:39:03 [DEBUG] Frontier distance threshold: 1.060
+2025-08-14 20:39:03 [INFO] Step 1: Set 12 frontier views
+2025-08-14 20:39:03 [ERROR] Progressive update failed: Expected all tensors to be on the same device, but found at least two devices, cuda:0 and cpu! (when checking argument for argument other in method wrapper_CUDA_linalg_cross)
+2025-08-14 20:39:03 [ERROR] Training pipeline failed: Expected all tensors to be on the same device, but found at least two devices, cuda:0 and cpu! (when checking argument for argument other in method wrapper_CUDA_linalg_cross)

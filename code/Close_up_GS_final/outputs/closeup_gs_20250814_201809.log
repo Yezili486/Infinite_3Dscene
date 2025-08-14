@@ -1,0 +1,58 @@
+2025-08-14 20:18:09 [INFO] Logging to file: outputs\closeup_gs_20250814_201809.log
+2025-08-14 20:18:09 [INFO] GPU: NVIDIA GeForce RTX 3070 Ti Laptop GPU
+2025-08-14 20:18:09 [INFO] NVIDIA RTX 3070Ti detected - applying optimizations
+2025-08-14 20:18:09 [INFO] Automatic Mixed Precision enabled for 3070Ti
+2025-08-14 20:18:09 [INFO] Applied aggressive memory management for RTX 3070Ti
+2025-08-14 20:18:09 [INFO] GPU memory fraction set to 0.75
+2025-08-14 20:18:10 [INFO] Applied additional memory optimizations for 8GB GPU
+2025-08-14 20:18:10 [INFO] Close-up-GS Training initialized
+2025-08-14 20:18:10 [INFO] Device: cuda:0
+2025-08-14 20:18:10 [INFO] Debug mode: True
+2025-08-14 20:18:10 [INFO] Batch size: 1
+2025-08-14 20:18:10 [INFO] LPIPS metric initialized
+2025-08-14 20:18:10 [WARNING] DINO not available. Install dino-vit-features for no-reference evaluation
+2025-08-14 20:18:10 [INFO] === Starting Complete Close-up-GS Training ===
+2025-08-14 20:18:10 [INFO] Step 7.1: Loading dataset...
+2025-08-14 20:18:10 [INFO] Loaded synthetic dataset: 2 samples
+2025-08-14 20:18:10 [INFO] Dataset statistics:
+2025-08-14 20:18:10 [INFO]   Total samples: 2
+2025-08-14 20:18:10 [INFO]   Training views: 2
+2025-08-14 20:18:10 [INFO]   Close-up test samples: 2
+2025-08-14 20:18:10 [INFO] Step 7.2: Initial GSModel optimization (10 iterations)...
+2025-08-14 20:18:10 [INFO] ProgressiveTrainer initialized
+2025-08-14 20:18:10 [INFO]   Rounds: 3
+2025-08-14 20:18:10 [INFO]   Scales: [3, 9, 27]
+2025-08-14 20:18:10 [INFO]   Anchor count: 5
+2025-08-14 20:18:10 [INFO]   Update count: 8
+2025-08-14 20:18:10 [INFO] CloseupGS Trainer initialized
+2025-08-14 20:18:10 [INFO]   Device: cuda:0
+2025-08-14 20:18:10 [INFO]   Training views: 2
+2025-08-14 20:18:10 [INFO]   Close-up test views: 2
+2025-08-14 20:18:10 [INFO]   Baseline iterations: 10
+2025-08-14 20:18:10 [INFO]   Refinement iterations: 5
+2025-08-14 20:18:10 [INFO]   Fine-tuning iterations: 5
+2025-08-14 20:18:10 [INFO] Starting baseline GSModel training...
+2025-08-14 20:18:10 [INFO] Phase 1: Training baseline GSModel (10 iterations)
+2025-08-14 20:18:13 [INFO] Baseline iter 0: loss=0.578622, gaussians=400
+2025-08-14 20:18:27 [INFO] Checkpoint saved: outputs\closeup_gs_baseline_final.pth
+2025-08-14 20:18:27 [INFO] Baseline training completed in 16.1s
+2025-08-14 20:18:27 [INFO] Initial optimization completed in 16.6s
+2025-08-14 20:18:27 [INFO] Final Gaussians count: 400
+2025-08-14 20:18:27 [INFO] Step 7.3: Progressive update (3 rounds)...
+2025-08-14 20:18:27 [INFO] Starting progressive self-training...
+2025-08-14 20:18:27 [INFO] Starting progressive update: 3 rounds
+2025-08-14 20:18:27 [INFO] Scales: [3, 9, 27]
+2025-08-14 20:18:27 [INFO] Initial training views: 2
+2025-08-14 20:18:27 [INFO] 
+=== Progressive Round 1/3 ===
+2025-08-14 20:18:27 [INFO] Scale factor: 3
+2025-08-14 20:18:27 [DEBUG] Base distance: 3.629
+2025-08-14 20:18:27 [DEBUG] Frontier distance threshold: 1.210
+2025-08-14 20:18:27 [INFO] Step 1: Set 12 frontier views
+2025-08-14 20:18:27 [DEBUG] Anchor selection objective: -1.4174
+2025-08-14 20:18:27 [INFO] Step 2: Selected 2 anchor views: [0, 1]
+2025-08-14 20:18:27 [DEBUG] Update selection objective: -34.2224
+2025-08-14 20:18:27 [INFO] Step 3: Selected 8 views to update
+2025-08-14 20:18:28 [DEBUG] Rendered view 1/8: torch.Size([3, 512, 512])
+2025-08-14 20:18:31 [DEBUG] Refined view 1/8: torch.Size([3, 512, 512])
+2025-08-14 20:18:32 [DEBUG] Rendered view 2/8: torch.Size([3, 512, 512])

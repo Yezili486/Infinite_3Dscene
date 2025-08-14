@@ -1,0 +1,174 @@
+# Debug configuration for Close-up-GS (shorter iterations for testing)
+# Based on closeup_gs.yaml but with reduced iterations
+
+# Model configuration
+model:
+  # Gaussian Splatting parameters
+  sh_degree: 3  # Spherical harmonics degree
+  max_gaussians: 100000  # Maximum number of Gaussians
+  
+  # Loss weights
+  l1_weight: 0.8
+  ssim_weight: 0.2
+
+# Data configuration  
+data:
+  # Preprocessing
+  target_resolution: [512, 512]
+  normalize_images: true
+  augmentation:
+    enabled: false  # Disable for synthetic data
+    rotation: 5.0
+    translation: 0.1
+    brightness: 0.1
+
+# See3D integration (Paper Section 4.2: CloseupRefiner)
+see3d:
+  enabled: true
+  model_path: null  # Will use default/pretrained
+  use_supir: true
+  
+  # Channel projection settings  
+  projection_layers:
+    enabled: true
+
+# Training pipeline configuration (DEBUG VERSION - REDUCED ITERATIONS)
+training:
+  # Phase 1: Baseline GSModel (论文5.2节) - REDUCED
+  baseline_iterations: 10  # Reduced to 10 for flow verification
+  baseline_lr:
+    position: 0.00016
+    position_final: 0.0000016
+    feature: 0.0025
+    opacity: 0.05
+    scaling: 0.005
+    rotation: 0.001
+  
+  # Batch size optimization (RTX 3070Ti with 8GB memory)
+  batch_size: 1
+  effective_batch_size: 1
+  dataloader_workers: 2
+  pin_memory: false
+  
+  # Phase 2: CloseupRefiner training - REDUCED
+  refinement_iterations: 5  # Reduced to 5 for flow verification
+  refinement_lr: 0.0001
+  
+  # Phase 3: End-to-end fine-tuning - REDUCED  
+  finetune_iterations: 5   # Reduced to 5 for flow verification
+  finetune_lr: 0.0001
+  
+  # Optimizer settings
+  optimizer: adam
+  weight_decay: 0.0001
+  
+  # Densification strategy (Paper Section 4.3.4)
+  densification:
+    start_iter: 2      # Reduced from 500
+    end_iter: 8        # Reduced from 15000  
+    interval: 3        # Reduced from 100
+    opacity_reset_interval: 10  # Reduced from 3000
+    pruning_interval: 5         # Reduced from 1000
+    distance_threshold: 0.3333  # 1/3 distance threshold
+  
+  # Logging and checkpointing
+  log_interval: 2         # More frequent logging for debugging
+  eval_interval: 5        # More frequent evaluation
+  checkpoint_interval: 10
+  
+  # Checkpoint management
+  save_best_model: true
+  save_phase_models: true
+
+# Hardware configuration (Optimized for NVIDIA RTX 3070Ti)
+device:
+  use_cuda: true
+  gpu_id: 0
+  mixed_precision: true    # Enable AMP for 3070Ti memory efficiency
+  
+  # RTX 3070Ti specific optimizations
+  cudnn_benchmark: true     # Enable cuDNN benchmarking for consistent workloads
+  tf32_matmul: false       # Disable TF32 (3070Ti has limited TF32 support)
+  tf32_cudnn: false        # Disable TF32 for cuDNN
+  memory_fraction: 0.75    # Use 75% of GPU memory (3070Ti has 8GB) - more conservative
+  
+  # Memory management (3070Ti optimized)
+  empty_cache_interval: 500   # Clear CUDA cache more frequently (8GB memory)
+  gradient_accumulation: 1    # No gradient accumulation needed with batch_size=1
+  max_memory_allocated: 6.0   # Maximum memory allocation in GB - reduced for stability
+  
+  # Optimization flags (3070Ti compatible)
+  torch_compile: false     # Disable torch.compile for compatibility
+  flash_attention: false   # Disable flash attention if not needed
+  amp_enabled: true        # Enable Automatic Mixed Precision for memory efficiency
+
+# Close-up specific parameters
+closeup:
+  # View selection criteria
+  closeup_distance_threshold: 2.0  # Distance to object center
+  min_views_for_closeup: 3
+  max_closeup_views: 10
+
+# Output configuration
+output_dir: "./outputs"
+experiment_name: "closeup_gs_debug"
+
+# View Selection Configuration (Step 5: Paper Section 4.3.1-4.3.2)
+view_selection:
+  enabled: true
+  anchor_selection:
+    k_anchors: 3           # Reduced from 5
+    max_iterations: 100    # Reduced from 1000
+  update_selection:
+    max_update_views: 3    # Reduced from 5
+    k_candidates: 2        # Reduced from 3
+
+# Progressive Self-Training Configuration (Step 6: Paper Section 4.3, Figure 2)
+progressive_training:
+  enabled: true
+  rounds: 2              # Reduced from 3 
+  scales: [2, 4]         # Reduced from [3, 9, 27]
+  anchor_count: 3        # Reduced from 5
+  update_count: 3        # Reduced from 8
+  num_frontier_views: 5  # Reduced from 12
+  finetune_iterations: 5  # Reduced to 5 for flow verification
+  densify_threshold: 0.3333
+  reliable_threshold: 0.95
+
+# Debugging options (Enhanced for Step 7)
+debug:
+  save_intermediate_masks: false
+  save_warped_images: false
+  verbose_logging: false
+  profile_performance: false
+  
+  # Tensor shape debugging (avoid RuntimeError)
+  print_tensor_shapes: true
+  validate_shapes: true
+  memory_monitoring: true
+  
+  # Channel mismatch debugging
+  check_channel_compatibility: true
+  auto_fix_channels: true
+
+# Evaluation configuration (Enhanced for Step 7)
+evaluation:
+  eval_interval: 20      # More frequent evaluation
+  metrics: ['psnr', 'ssim', 'lpips', 'dino']
+  num_test_samples: 3    # Reduced from 5
+  
+  # Metrics with ground truth (Paper Section 5.1)
+  with_gt:
+    psnr: true
+    ssim: true
+    lpips: true
+    
+  # Metrics without ground truth (Paper Section 5.1)
+  without_gt:
+    dino: true
+    meta_iqa: false
+    
+  # Evaluation settings
+  save_rendered_images: true
+  save_comparison_grids: true
+  compute_per_view_metrics: true

@@ -1,0 +1,91 @@
+2025-08-14 20:49:43 [INFO] Logging to file: outputs\closeup_gs_20250814_204943.log
+2025-08-14 20:49:43 [INFO] GPU: NVIDIA GeForce RTX 3070 Ti Laptop GPU
+2025-08-14 20:49:43 [INFO] NVIDIA RTX 3070Ti detected - applying optimizations
+2025-08-14 20:49:43 [INFO] Automatic Mixed Precision enabled for 3070Ti
+2025-08-14 20:49:43 [INFO] Applied aggressive memory management for RTX 3070Ti
+2025-08-14 20:49:43 [INFO] GPU memory fraction set to 0.75
+2025-08-14 20:49:43 [INFO] Applied additional memory optimizations for 8GB GPU
+2025-08-14 20:49:43 [INFO] Close-up-GS Training initialized
+2025-08-14 20:49:43 [INFO] Device: cuda:0
+2025-08-14 20:49:43 [INFO] Debug mode: True
+2025-08-14 20:49:43 [INFO] Batch size: 1
+2025-08-14 20:49:43 [INFO] LPIPS metric initialized
+2025-08-14 20:49:43 [WARNING] DINO not available. Install dino-vit-features for no-reference evaluation
+2025-08-14 20:49:43 [INFO] === Starting Complete Close-up-GS Training ===
+2025-08-14 20:49:43 [INFO] Step 7.1: Loading dataset...
+2025-08-14 20:49:43 [INFO] Loaded synthetic dataset: 1 samples
+2025-08-14 20:49:43 [INFO] Dataset statistics:
+2025-08-14 20:49:43 [INFO]   Total samples: 1
+2025-08-14 20:49:43 [INFO]   Training views: 1
+2025-08-14 20:49:43 [INFO]   Close-up test samples: 1
+2025-08-14 20:49:43 [INFO] Step 7.2: Initial GSModel optimization (10 iterations)...
+2025-08-14 20:49:43 [INFO] ProgressiveTrainer initialized
+2025-08-14 20:49:43 [INFO]   Rounds: 3
+2025-08-14 20:49:43 [INFO]   Scales: [3, 9, 27]
+2025-08-14 20:49:43 [INFO]   Anchor count: 5
+2025-08-14 20:49:43 [INFO]   Update count: 8
+2025-08-14 20:49:44 [INFO] CloseupGS Trainer initialized
+2025-08-14 20:49:44 [INFO]   Device: cuda:0
+2025-08-14 20:49:44 [INFO]   Training views: 1
+2025-08-14 20:49:44 [INFO]   Close-up test views: 1
+2025-08-14 20:49:44 [INFO]   Baseline iterations: 10
+2025-08-14 20:49:44 [INFO]   Refinement iterations: 5
+2025-08-14 20:49:44 [INFO]   Fine-tuning iterations: 5
+2025-08-14 20:49:44 [INFO] Starting baseline GSModel training...
+2025-08-14 20:49:44 [INFO] Phase 1: Training baseline GSModel (10 iterations)
+2025-08-14 20:49:45 [INFO] Baseline iter 0: loss=0.578603, gaussians=200
+2025-08-14 20:49:52 [INFO] Checkpoint saved: outputs\closeup_gs_baseline_final.pth
+2025-08-14 20:49:52 [INFO] Baseline training completed in 8.5s
+2025-08-14 20:49:52 [INFO] Initial optimization completed in 8.9s
+2025-08-14 20:49:52 [INFO] Final Gaussians count: 200
+2025-08-14 20:49:52 [INFO] Step 7.3: Progressive update (3 rounds)...
+2025-08-14 20:49:52 [INFO] Starting progressive self-training...
+2025-08-14 20:49:52 [INFO] Starting progressive update: 3 rounds
+2025-08-14 20:49:52 [INFO] Scales: [3, 9, 27]
+2025-08-14 20:49:52 [INFO] Initial training views: 1
+2025-08-14 20:49:52 [INFO] 
+=== Progressive Round 1/3 ===
+2025-08-14 20:49:52 [INFO] Scale factor: 3
+2025-08-14 20:49:52 [DEBUG] Base distance: 2.145
+2025-08-14 20:49:52 [DEBUG] Frontier distance threshold: 0.715
+2025-08-14 20:49:52 [INFO] Step 1: Set 12 frontier views
+2025-08-14 20:49:52 [DEBUG] Anchor selection objective: 0.0000
+2025-08-14 20:49:52 [INFO] Step 2: Selected 1 anchor views: [0]
+2025-08-14 20:49:52 [DEBUG] Update selection objective: -37.1079
+2025-08-14 20:49:52 [INFO] Step 3: Selected 8 views to update
+2025-08-14 20:49:53 [DEBUG] Rendered view 1/8: torch.Size([3, 512, 512])
+2025-08-14 20:49:54 [DEBUG] Refined view 1/8: torch.Size([3, 512, 512])
+2025-08-14 20:49:55 [DEBUG] Rendered view 2/8: torch.Size([3, 512, 512])
+2025-08-14 20:49:56 [DEBUG] Refined view 2/8: torch.Size([3, 512, 512])
+2025-08-14 20:49:57 [DEBUG] Rendered view 3/8: torch.Size([3, 512, 512])
+2025-08-14 20:49:58 [DEBUG] Refined view 3/8: torch.Size([3, 512, 512])
+2025-08-14 20:49:59 [DEBUG] Rendered view 4/8: torch.Size([3, 512, 512])
+2025-08-14 20:50:00 [DEBUG] Refined view 4/8: torch.Size([3, 512, 512])
+2025-08-14 20:50:00 [DEBUG] Rendered view 5/8: torch.Size([3, 512, 512])
+2025-08-14 20:50:02 [DEBUG] Refined view 5/8: torch.Size([3, 512, 512])
+2025-08-14 20:50:02 [DEBUG] Rendered view 6/8: torch.Size([3, 512, 512])
+2025-08-14 20:50:03 [DEBUG] Refined view 6/8: torch.Size([3, 512, 512])
+2025-08-14 20:50:04 [DEBUG] Rendered view 7/8: torch.Size([3, 512, 512])
+2025-08-14 20:50:05 [DEBUG] Refined view 7/8: torch.Size([3, 512, 512])
+2025-08-14 20:50:06 [DEBUG] Rendered view 8/8: torch.Size([3, 512, 512])
+2025-08-14 20:50:07 [DEBUG] Refined view 8/8: torch.Size([3, 512, 512])
+2025-08-14 20:50:07 [INFO] Step 4: Rendered and refined 8 images
+2025-08-14 20:50:07 [INFO] Fine-tuning model with 8 refined images
+2025-08-14 20:50:08 [DEBUG] Fine-tune iter 0: loss = 0.040000
+2025-08-14 20:50:09 [DEBUG] Fine-tune iter 1: loss = 0.040000
+2025-08-14 20:50:10 [DEBUG] Fine-tune iter 2: loss = 0.040000
+2025-08-14 20:50:11 [DEBUG] Fine-tune iter 3: loss = 0.040000
+2025-08-14 20:50:12 [DEBUG] Fine-tune iter 4: loss = 0.040000
+2025-08-14 20:50:17 [INFO] Fine-tuning completed: avg_loss = 0.040000
+2025-08-14 20:50:17 [INFO] Step 5: Fine-tuning completed
+2025-08-14 20:50:17 [DEBUG] Added 8 refined views to training set
+2025-08-14 20:50:17 [INFO] Round 1 completed
+2025-08-14 20:50:17 [INFO] Updated training views: 9
+2025-08-14 20:50:17 [INFO] Round metrics: {'psnr': inf, 'ssim': 1.0, 'num_views': 8}
+2025-08-14 20:50:17 [INFO] 
+=== Progressive Round 2/3 ===
+2025-08-14 20:50:17 [INFO] Scale factor: 9
+2025-08-14 20:50:17 [DEBUG] Base distance: 0.874
+2025-08-14 20:50:17 [DEBUG] Frontier distance threshold: 0.097
+2025-08-14 20:50:18 [ERROR] Progressive update failed: Expected all tensors to be on the same device, but found at least two devices, cuda:0 and cpu!
+2025-08-14 20:50:18 [ERROR] Training pipeline failed: Expected all tensors to be on the same device, but found at least two devices, cuda:0 and cpu!

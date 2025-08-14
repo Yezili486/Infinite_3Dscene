@@ -1,0 +1,77 @@
+2025-08-14 19:45:31 [INFO] Logging to file: outputs\closeup_gs_20250814_194531.log
+2025-08-14 19:45:31 [INFO] GPU: NVIDIA GeForce RTX 3070 Ti Laptop GPU
+2025-08-14 19:45:31 [INFO] NVIDIA RTX 3070Ti detected - applying optimizations
+2025-08-14 19:45:31 [INFO] Automatic Mixed Precision enabled for 3070Ti
+2025-08-14 19:45:31 [INFO] Applied aggressive memory management for RTX 3070Ti
+2025-08-14 19:45:31 [INFO] GPU memory fraction set to 0.75
+2025-08-14 19:45:31 [INFO] Applied additional memory optimizations for 8GB GPU
+2025-08-14 19:45:31 [INFO] Close-up-GS Training initialized
+2025-08-14 19:45:31 [INFO] Device: cuda:0
+2025-08-14 19:45:31 [INFO] Debug mode: True
+2025-08-14 19:45:31 [INFO] Batch size: 1
+2025-08-14 19:45:31 [INFO] LPIPS metric initialized
+2025-08-14 19:45:31 [WARNING] DINO not available. Install dino-vit-features for no-reference evaluation
+2025-08-14 19:45:31 [INFO] === Starting Complete Close-up-GS Training ===
+2025-08-14 19:45:31 [INFO] Step 7.1: Loading dataset...
+2025-08-14 19:45:32 [INFO] Loaded synthetic dataset: 3 samples
+2025-08-14 19:45:32 [INFO] Dataset statistics:
+2025-08-14 19:45:32 [INFO]   Total samples: 3
+2025-08-14 19:45:32 [INFO]   Training views: 3
+2025-08-14 19:45:32 [INFO]   Close-up test samples: 3
+2025-08-14 19:45:32 [INFO] Step 7.2: Initial GSModel optimization (10 iterations)...
+2025-08-14 19:45:32 [INFO] ProgressiveTrainer initialized
+2025-08-14 19:45:32 [INFO]   Rounds: 3
+2025-08-14 19:45:32 [INFO]   Scales: [3, 9, 27]
+2025-08-14 19:45:32 [INFO]   Anchor count: 5
+2025-08-14 19:45:32 [INFO]   Update count: 8
+2025-08-14 19:45:32 [INFO] CloseupGS Trainer initialized
+2025-08-14 19:45:32 [INFO]   Training views: 3
+2025-08-14 19:45:32 [INFO]   Close-up test views: 3
+2025-08-14 19:45:32 [INFO]   Baseline iterations: 10
+2025-08-14 19:45:32 [INFO]   Refinement iterations: 5
+2025-08-14 19:45:32 [INFO]   Fine-tuning iterations: 5
+2025-08-14 19:45:32 [INFO] Starting baseline GSModel training...
+2025-08-14 19:45:32 [INFO] Phase 1: Training baseline GSModel (10 iterations)
+2025-08-14 19:45:35 [INFO] Baseline iter 0: loss=0.578436, gaussians=600
+2025-08-14 19:45:55 [INFO] Checkpoint saved: outputs\closeup_gs_baseline_final.pth
+2025-08-14 19:45:55 [INFO] Baseline training completed in 23.0s
+2025-08-14 19:45:55 [INFO] Initial optimization completed in 23.4s
+2025-08-14 19:45:55 [INFO] Final Gaussians count: 600
+2025-08-14 19:45:55 [INFO] Step 7.3: Progressive update (3 rounds)...
+2025-08-14 19:45:55 [INFO] Starting progressive self-training...
+2025-08-14 19:45:55 [INFO] Starting progressive update: 3 rounds
+2025-08-14 19:45:55 [INFO] Scales: [3, 9, 27]
+2025-08-14 19:45:55 [INFO] Initial training views: 3
+2025-08-14 19:45:55 [INFO] 
+=== Progressive Round 1/3 ===
+2025-08-14 19:45:55 [INFO] Scale factor: 3
+2025-08-14 19:45:55 [DEBUG] Base distance: 4.579
+2025-08-14 19:45:55 [DEBUG] Frontier distance threshold: 1.526
+2025-08-14 19:45:55 [INFO] Step 1: Set 12 frontier views
+2025-08-14 19:45:55 [DEBUG] Anchor selection objective: -3.7480
+2025-08-14 19:45:55 [INFO] Step 2: Selected 3 anchor views: [0, 1, 2]
+2025-08-14 19:45:55 [DEBUG] Update selection objective: -33.1170
+2025-08-14 19:45:55 [INFO] Step 3: Selected 8 views to update
+2025-08-14 19:45:57 [DEBUG] Rendered view 1/8: torch.Size([3, 512, 512])
+2025-08-14 19:46:03 [WARNING] Refinement failed for view 0: 'dict' object has no attribute 'shape'
+2025-08-14 19:46:05 [DEBUG] Rendered view 2/8: torch.Size([3, 512, 512])
+2025-08-14 19:46:11 [WARNING] Refinement failed for view 1: 'dict' object has no attribute 'shape'
+2025-08-14 19:46:13 [DEBUG] Rendered view 3/8: torch.Size([3, 512, 512])
+2025-08-14 19:46:20 [WARNING] Refinement failed for view 2: 'dict' object has no attribute 'shape'
+2025-08-14 19:46:22 [DEBUG] Rendered view 4/8: torch.Size([3, 512, 512])
+2025-08-14 19:46:28 [WARNING] Refinement failed for view 3: 'dict' object has no attribute 'shape'
+2025-08-14 19:46:31 [DEBUG] Rendered view 5/8: torch.Size([3, 512, 512])
+2025-08-14 19:46:38 [WARNING] Refinement failed for view 4: 'dict' object has no attribute 'shape'
+2025-08-14 19:46:40 [DEBUG] Rendered view 6/8: torch.Size([3, 512, 512])
+2025-08-14 19:46:47 [WARNING] Refinement failed for view 5: 'dict' object has no attribute 'shape'
+2025-08-14 19:46:50 [DEBUG] Rendered view 7/8: torch.Size([3, 512, 512])
+2025-08-14 19:46:57 [WARNING] Refinement failed for view 6: 'dict' object has no attribute 'shape'
+2025-08-14 19:46:58 [DEBUG] Rendered view 8/8: torch.Size([3, 512, 512])
+2025-08-14 19:47:05 [WARNING] Refinement failed for view 7: 'dict' object has no attribute 'shape'
+2025-08-14 19:47:05 [INFO] Step 4: Rendered and refined 16 images
+2025-08-14 19:47:05 [INFO] Fine-tuning model with 16 refined images
+2025-08-14 19:47:08 [WARNING] Geometric consistency check failed: Expected all tensors to be on the same device, but found at least two devices, cpu and cuda:0! (when checking argument for argument mat in method wrapper_CUDA_addmv_)
+2025-08-14 19:47:09 [DEBUG] Fine-tune iter 0: loss = 0.040000
+2025-08-14 19:47:11 [WARNING] Geometric consistency check failed: Expected all tensors to be on the same device, but found at least two devices, cpu and cuda:0! (when checking argument for argument mat in method wrapper_CUDA_addmv_)
+2025-08-14 19:47:11 [ERROR] Progressive update failed: unsupported operand type(s) for -: 'Tensor' and 'dict'
+2025-08-14 19:47:11 [ERROR] Training pipeline failed: unsupported operand type(s) for -: 'Tensor' and 'dict'

@@ -1,0 +1,17 @@
+2025-08-14 17:43:39 [INFO] Logging to file: outputs\closeup_gs_20250814_174339.log
+2025-08-14 17:43:39 [INFO] GPU: NVIDIA GeForce RTX 3070 Ti Laptop GPU
+2025-08-14 17:43:39 [INFO] NVIDIA RTX 3070Ti detected - applying optimizations
+2025-08-14 17:43:39 [INFO] Automatic Mixed Precision enabled for 3070Ti
+2025-08-14 17:43:39 [INFO] GPU memory fraction set to 0.85
+2025-08-14 17:43:39 [INFO] Close-up-GS Training initialized
+2025-08-14 17:43:39 [INFO] Device: cuda:0
+2025-08-14 17:43:39 [INFO] Debug mode: True
+2025-08-14 17:43:39 [INFO] Batch size: 1
+2025-08-14 17:43:39 [WARNING] LPIPS not available. Install with: pip install lpips
+2025-08-14 17:43:39 [WARNING] DINO not available. Install dino-vit-features for no-reference evaluation
+2025-08-14 17:43:39 [INFO] Step 7.1: Loading dataset...
+2025-08-14 17:43:39 [INFO] Loaded synthetic dataset: 5 samples
+2025-08-14 17:43:39 [INFO] Dataset statistics:
+2025-08-14 17:43:39 [INFO]   Total samples: 5
+2025-08-14 17:43:39 [INFO]   Training views: 5
+2025-08-14 17:43:39 [INFO]   Close-up test samples: 5

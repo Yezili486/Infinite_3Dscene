@@ -1,0 +1,10 @@
+=== Close-up-GS 3D Model Summary ===
+
+Total Gaussians: 200
+Active Gaussians (opacity > 0.01): 200
+Model Bounding Box:
+  Min: (-5.969, -5.382, -13.211)
+  Max: (4.471, 3.541, -4.757)
+  Size: (10.440, 8.923, 8.454)
+Opacity Range: 0.066 - 0.156
+Average Scale: (0.010, 0.010, 0.010)
