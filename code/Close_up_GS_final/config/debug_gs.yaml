@@ -5,7 +5,7 @@
 model:
   # Gaussian Splatting parameters
   sh_degree: 3  # Spherical harmonics degree
-  max_gaussians: 100000  # Maximum number of Gaussians
+  max_gaussians: 50000   # Reduced for RTX 3070Ti memory constraints
   
   # Loss weights
   l1_weight: 0.8
@@ -35,7 +35,7 @@ see3d:
 # Training pipeline configuration (DEBUG VERSION - REDUCED ITERATIONS)
 training:
   # Phase 1: Baseline GSModel (论文5.2节) - REDUCED
-  baseline_iterations: 10  # Reduced to 10 for flow verification
+  baseline_iterations: 10  # Set to 10 iterations for quick testing
   baseline_lr:
     position: 0.00016
     position_final: 0.0000016

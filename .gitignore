@@ -1,0 +1,57 @@
+# Large model files and checkpoints (GitHub限制单文件100MB)
+*.pth
+*.ckpt
+*.safetensors
+*.bin
+*.h5
+
+# Archive files (这些压缩文件太大)
+*.zip
+*.tar.gz
+*.tar
+*.rar
+*.7z
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Output and log files
+outputs/
+logs/
+*.log
+
+# Temporary files
+temp_upload/
+*_temp/
+
+# Dataset files (图片和视频文件)
+*.jpg
+*.png
+*.mp4
+*.avi
+
+# Duplicate project folders
+1/
+2/
+3/
+4/
+5/
+CLOSEUPGS/
+CLOSEUPGS111/
+
+# Specific large files
+LucidDreamer-main.zip
+project.zip
+project.tar.gz
+archive.zip
+sd-v1-5-inpainting.ckpt
+
+# Tensorboard logs
+**/tensorboard/
+*.tfevents.*
+
+# PDF files
+paper/
+*.pdf 

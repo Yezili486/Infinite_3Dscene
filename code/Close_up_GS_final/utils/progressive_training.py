@@ -1,8 +1,10 @@
 """
 Progressive Self-Training for Close-up-GS
 Implementation of progressive update algorithm (Paper Section 4.3, Figure 2)
+Memory optimized for RTX 3070Ti (8GB)
 """
 
+import os
 import torch
 import torch.optim as optim
 import numpy as np
@@ -11,6 +13,9 @@ import math
 from typing import List, Dict, Tuple, Optional
 from dataclasses import dataclass
 import time
+
+# Memory optimization removed for high-performance GPU
+# os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:128'
 
 from utils.view_selection import ViewSelector
 from models.gs_model import GSModel
@@ -444,13 +449,16 @@ class ProgressiveTrainer:
         ]
         optimizer = optim.Adam(param_groups, lr=0.0, eps=1e-15)
         
-        # 步骤3: 确保模型在正确设备上，并清理内存
+        # Initialize CUDA if available
+        if self.device.type == 'cuda':
+            torch.cuda.synchronize()
+        
+        # 步骤3: 确保模型在正确设备上
         self.gs_model = self.gs_model.to(self.device)
         self.gs_model.train()
         
-        # 清理GPU内存缓存
-        if self.device.type == 'cuda':
-            torch.cuda.empty_cache()
+        # Setup gradient scaler for mixed precision (RTX 3070Ti optimization)
+        scaler = torch.cuda.amp.GradScaler() if self.device.type == 'cuda' else None
         
         total_loss = 0.0
         losses = {'l1_loss': 0.0, 'ssim_loss': 0.0, 'total_loss': 0.0}
@@ -461,31 +469,40 @@ class ProgressiveTrainer:
             camera = update_views[view_idx]['camera']
             target_image = refined_images[view_idx]
             
-            # Forward pass
-            output = self.gs_model(camera)
-            rendered_image = output['image']
+            # Forward pass with mixed precision for memory efficiency
+            with torch.cuda.amp.autocast():
+                output = self.gs_model(camera)
+                rendered_image = output['image']
+                
+                # Apply reliable pixel mask
+                reliable_mask = self._compute_reliable_pixel_mask(
+                    rendered_image, target_image, camera, p_target
+                )
+                
+                # Compute loss with reliable pixels only
+                loss_dict = self._compute_masked_loss(rendered_image, target_image, reliable_mask)
             
-            # Apply reliable pixel mask
-            reliable_mask = self._compute_reliable_pixel_mask(
-                rendered_image, target_image, camera, p_target
-            )
-            
-            # Compute loss with reliable pixels only
-            loss_dict = self._compute_masked_loss(rendered_image, target_image, reliable_mask)
-            
-            # Backward pass
+            # Backward pass with gradient scaling
             optimizer.zero_grad()
-            loss_dict['total_loss'].backward()
+            if scaler is not None:
+                scaler.scale(loss_dict['total_loss']).backward()
+            else:
+                loss_dict['total_loss'].backward()
             
             # Update training stats
             if self.gs_model._centers.grad is not None:
                 self.gs_model.update_training_stats(self.gs_model._centers.grad)
             
-            optimizer.step()
+            # Optimizer step with gradient scaling
+            if scaler is not None:
+                scaler.step(optimizer)
+                scaler.update()
+            else:
+                optimizer.step()
             
-            # 步骤3: 定期清理GPU内存（每100次迭代）
+            # Periodic CUDA sync for stability
             if iteration % 100 == 0 and self.device.type == 'cuda':
-                torch.cuda.empty_cache()
+                torch.cuda.synchronize()
             
             # Accumulate losses
             for key in losses:

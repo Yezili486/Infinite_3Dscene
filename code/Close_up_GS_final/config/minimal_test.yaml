@@ -1,0 +1,152 @@
+# Minimal test configuration for RTX 3070Ti (8GB memory constraints)
+# Ultra-conservative settings for LLFF testing
+
+# Model configuration - minimal
+model:
+  sh_degree: 2  # Reduced from 3
+  max_gaussians: 10000  # Very small for memory
+  l1_weight: 0.8
+  ssim_weight: 0.2
+
+# Data configuration - minimal resolution
+data:
+  target_resolution: [128, 128]  # Very small
+  normalize_images: true
+  augmentation:
+    enabled: false
+
+# See3D integration - disabled for memory
+see3d:
+  enabled: false  # Disable to save memory
+  use_supir: false
+
+# Training pipeline - ultra minimal iterations
+training:
+  baseline_iterations: 5   # Ultra minimal
+  baseline_lr:
+    position: 0.00016
+    position_final: 0.0000016
+    feature: 0.0025
+    opacity: 0.05
+    scaling: 0.005
+    rotation: 0.001
+  
+  batch_size: 1
+  effective_batch_size: 1
+  dataloader_workers: 1
+  pin_memory: false
+  
+  refinement_iterations: 2  # Ultra minimal  
+  refinement_lr: 0.0001
+  
+  finetune_iterations: 2    # Ultra minimal
+  finetune_lr: 0.0001
+  
+  optimizer: adam
+  weight_decay: 0.0001
+  
+  # Densification - minimal
+  densification:
+    start_iter: 1
+    end_iter: 3
+    interval: 2
+    opacity_reset_interval: 10
+    pruning_interval: 5
+    distance_threshold: 0.3333
+  
+  log_interval: 1
+  eval_interval: 5
+  checkpoint_interval: 10
+  
+  save_best_model: true
+  save_phase_models: false  # Disable to save memory
+
+# Hardware configuration - RTX 3070Ti ultra conservative
+device:
+  use_cuda: true
+  gpu_id: 0
+  mixed_precision: true
+  
+  cudnn_benchmark: false   # Disable for memory
+  tf32_matmul: false
+  tf32_cudnn: false
+  memory_fraction: 0.5     # Use only 50% of GPU memory
+  
+  empty_cache_interval: 10  # Very frequent
+  gradient_accumulation: 1
+  max_memory_allocated: 4.0  # Very conservative 4GB limit
+  
+  torch_compile: false
+  flash_attention: false
+  amp_enabled: true
+
+# Close-up parameters - minimal
+closeup:
+  closeup_distance_threshold: 2.0
+  min_views_for_closeup: 2   # Reduced
+  max_closeup_views: 5       # Reduced
+
+# Output configuration
+output_dir: "./outputs"
+experiment_name: "closeup_gs_minimal"
+
+# View Selection - minimal
+view_selection:
+  enabled: true
+  anchor_selection:
+    k_anchors: 2           # Minimal
+    max_iterations: 50     # Reduced
+  update_selection:
+    max_update_views: 2    # Minimal
+    k_candidates: 2
+
+# Progressive Training - ultra minimal
+progressive_training:
+  enabled: true
+  rounds: 1              # Single round only
+  scales: [2]            # Single scale
+  anchor_count: 2        # Minimal
+  update_count: 2        # Minimal
+  num_frontier_views: 3  # Minimal
+  finetune_iterations: 2  # Ultra minimal
+  densify_threshold: 0.3333
+  reliable_threshold: 0.95
+
+# Debugging - minimal output
+debug:
+  save_intermediate_masks: false
+  save_warped_images: false
+  verbose_logging: false
+  profile_performance: false
+  print_tensor_shapes: false  # Disable for memory
+  validate_shapes: false
+  memory_monitoring: true
+  check_channel_compatibility: false
+  auto_fix_channels: false
+
+# Evaluation - minimal
+evaluation:
+  eval_interval: 10
+  metrics: ['psnr']  # Only PSNR to save memory
+  num_test_samples: 1  # Single sample
+  
+  with_gt:
+    psnr: true
+    ssim: false  # Disable to save memory
+    lpips: false # Disable to save memory
+    
+  without_gt:
+    dino: false  # Disable to save memory
+    meta_iqa: false
+    
+  save_rendered_images: false  # Disable to save memory
+  save_comparison_grids: false
+  compute_per_view_metrics: false
+
+
+
+
+
+
+
+

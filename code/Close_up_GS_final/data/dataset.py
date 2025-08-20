@@ -28,24 +28,30 @@ class CloseUpDataset(Dataset):
     
     def __init__(self, 
                  data_path: str,
-                 config,
+                 config=None,
                  split: str = 'train',
                  dataset_type: str = 'auto',  # 'lerf', 'llff', 'nerf', 'auto'
-                 target_resolution: Tuple[int, int] = (512, 512)):
+                 target_resolution: Tuple[int, int] = (512, 512),
+                 device: str = 'cuda:0',
+                 **kwargs):
         """
         Initialize Close-up Dataset
         
         Args:
             data_path: Path to dataset directory
-            config: Configuration object
+            config: Configuration object  
             split: Dataset split ('train', 'val', 'test')
             dataset_type: Type of dataset ('lerf', 'llff', 'nerf', 'auto')
             target_resolution: Target resolution for preprocessing (width, height)
+            device: Device for tensor operations ('cuda:0', 'cpu')
         """
+
+        
         self.data_path = Path(data_path)
         self.config = config
         self.split = split
         self.target_resolution = target_resolution
+        self.device = torch.device(device)
         
         # Auto-detect dataset type if not specified
         if dataset_type == 'auto':
@@ -135,27 +141,60 @@ class CloseUpDataset(Dataset):
     
     def _load_llff_dataset(self):
         """Load LLFF dataset format"""
+        import glob
+        
         # LLFF datasets use poses_bounds.npy format
-        poses_bounds_file = self.data_path / "poses_bounds.npy"
+        # Support both direct path and nerf_llff_data/scene structure
+        root_path = self.data_path
+        poses_bounds_file = root_path / "poses_bounds.npy"
         
         if not poses_bounds_file.exists():
-            raise FileNotFoundError("poses_bounds.npy not found for LLFF dataset")
+            raise FileNotFoundError(f"poses_bounds.npy not found at {poses_bounds_file}")
         
         # Load poses and bounds
         poses_bounds = np.load(poses_bounds_file)
         poses = poses_bounds[:, :-2].reshape(-1, 3, 5)  # [N, 3, 5]
         bounds = poses_bounds[:, -2:]  # [N, 2]
         
-        # Load images
-        images_dir = self.data_path / "images"
+        # Load images using glob for compatibility with LLFF format
+        images_dir = root_path / "images"
         if not images_dir.exists():
-            images_dir = self.data_path / "images_4" if (self.data_path / "images_4").exists() else self.data_path
+            images_dir = root_path / "images_4" if (root_path / "images_4").exists() else root_path
         
-        image_files = sorted([f for f in images_dir.glob("*") 
-                             if f.suffix.lower() in ['.png', '.jpg', '.jpeg']])
+        if not images_dir.exists():
+            raise FileNotFoundError(f"Images directory not found at {images_dir}")
+        
+        # Use glob to find JPG images (LLFF standard format)
+        image_pattern = str(images_dir / "*.jpg")
+        image_files = sorted(glob.glob(image_pattern))
+        
+        if not image_files:
+            # Try other formats
+            for ext in ['*.png', '*.jpeg']:
+                image_pattern = str(images_dir / ext)
+                image_files = sorted(glob.glob(image_pattern))
+                if image_files:
+                    break
+        
+        if not image_files:
+            raise FileNotFoundError(f"No image files found in {images_dir}")
+        
+        print(f"Found {len(image_files)} images in {images_dir}")
+        print(f"Found {len(poses)} poses in poses_bounds.npy")
+        
+        # Convert to Path objects
+        image_files = [Path(f) for f in image_files]
+        
+        # Ensure we have matching poses and images
+        min_count = min(len(poses), len(image_files))
+        if min_count < len(poses) or min_count < len(image_files):
+            print(f"Warning: Mismatch between poses ({len(poses)}) and images ({len(image_files)})")
+            print(f"Using first {min_count} items")
+            poses = poses[:min_count]
+            image_files = image_files[:min_count]
         
         # Convert LLFF format to our camera format
-        self.cameras, self.images = self._convert_llff_to_cameras(poses, bounds, image_files)
+        self.cameras, self.images = self._convert_llff_to_cameras(poses, bounds[:min_count], image_files)
     
     def _load_nerf_dataset(self):
         """Load NeRF dataset format"""
@@ -245,6 +284,9 @@ class CloseUpDataset(Dataset):
         cameras = []
         images = []
         
+        # Store focal lengths for each camera (as specified in user requirements)
+        self.focals = poses[:, -1, -1]  # focal lengths from poses
+        
         for i, (pose, bound, image_file) in enumerate(zip(poses, bounds, image_files)):
             # Extract camera parameters from LLFF format
             # pose format: [down, right, back, position, hwf]
@@ -264,23 +306,46 @@ class CloseUpDataset(Dataset):
             # Convert from LLFF to OpenGL coordinate system
             c2w_homogeneous[:3, 1:3] *= -1  # Flip Y and Z axes
             
+            # Use target resolution for processing, but store original dimensions as reference
+            target_width, target_height = self.target_resolution
+            
+            # Scale focal length for target resolution
+            scale_x = target_width / width
+            scale_y = target_height / height
+            fx_scaled = fx * scale_x
+            fy_scaled = fy * scale_y
+            cx_scaled = target_width / 2.0
+            cy_scaled = target_height / 2.0
+            
+            # Convert camera_to_world to world_to_camera
+            c2w_tensor = torch.from_numpy(c2w_homogeneous).float()
+            w2c_tensor = torch.inverse(c2w_tensor)
+            
             camera = Camera(
-                image_width=int(width),
-                image_height=int(height),
-                fx=fx, fy=fy, cx=cx, cy=cy,
-                camera_to_world=torch.from_numpy(c2w_homogeneous).float()
+                image_width=target_width,
+                image_height=target_height,
+                fx=fx_scaled, fy=fy_scaled, 
+                cx=cx_scaled, cy=cy_scaled,
+                world_to_camera=w2c_tensor,
+                camera_to_world=c2w_tensor,
+                device=self.device
             )
             
             image = self._load_and_preprocess_image(image_file)
             
             cameras.append(camera)
             images.append(image)
+            
+            if i == 0:
+                print(f"LLFF Image {i}: original size [{int(width)}, {int(height)}], target size [{target_width}, {target_height}]")
+                print(f"LLFF Image {i}: focal length {focal_length:.2f} -> scaled [{fx_scaled:.2f}, {fy_scaled:.2f}]")
         
         return cameras, images
     
     def _load_and_preprocess_image(self, image_path: Path) -> torch.Tensor:
         """
-        Load and preprocess image with resize to 512x512 to avoid channel mismatch
+        Load and preprocess image with optimized resolution for memory efficiency
+        For LLFF: resize from 1008x756 to smaller resolution for RTX 3070Ti (8GB)
         
         Args:
             image_path: Path to image file
@@ -292,8 +357,23 @@ class CloseUpDataset(Dataset):
         image = Image.open(image_path).convert('RGB')
         image = np.array(image) / 255.0  # Normalize to [0, 1]
         
-        # Resize to target resolution (512x512) to avoid channel mismatch
-        image = cv2.resize(image, self.target_resolution, interpolation=cv2.INTER_AREA)
+        # Aggressive memory optimization for RTX 3070Ti (8GB)
+        # LLFF original ~1008x756 is too large, use much smaller resolution
+        if self.dataset_type == 'llff':
+            # Force very small resolution for memory efficiency (max 200px)
+            target_h, target_w = self.target_resolution[1], self.target_resolution[0]
+            max_dim = 200  # Very conservative for 8GB GPU
+            if target_h > max_dim or target_w > max_dim:
+                scale_factor = min(max_dim / target_h, max_dim / target_w)
+                target_h = int(target_h * scale_factor)
+                target_w = int(target_w * scale_factor)
+            # Ensure dimensions are even for better memory alignment
+            target_h = target_h - (target_h % 2)
+            target_w = target_w - (target_w % 2)
+            image = cv2.resize(image, (target_w, target_h), interpolation=cv2.INTER_AREA)
+        else:
+            # Resize to target resolution to avoid channel mismatch
+            image = cv2.resize(image, self.target_resolution, interpolation=cv2.INTER_AREA)
         
         # Convert to tensor [C, H, W]
         image_tensor = torch.from_numpy(image).float().permute(2, 0, 1)
@@ -303,48 +383,86 @@ class CloseUpDataset(Dataset):
     def _extract_training_views(self) -> List[int]:
         """
         Extract far distance training views (Vs)
-        Returns indices of cameras that are far from the object center
+        For LLFF: every 8th image for test, rest for training (paper approach)
+        For other datasets: use distance-based selection
         """
         if not hasattr(self, 'cameras') or len(self.cameras) == 0:
             return []
         
-        # Compute distances from object center
-        distances = []
-        for camera in self.cameras:
-            distance = torch.norm(camera.camera_center - self.object_center)
-            distances.append(distance.item())
+        # For LLFF datasets: use sampling approach (every 8th for test, rest for training)
+        if self.dataset_type == 'llff':
+            total_images = len(self.cameras)
+            
+            if self.split == 'train':
+                # Training views: all except every 8th
+                training_indices = [i for i in range(total_images) if i % 8 != 0]
+                print(f"LLFF training views: selected {len(training_indices)}/{total_images} views (skip every 8th)")
+                
+            elif self.split == 'test':
+                # Test views: every 8th view 
+                training_indices = [i for i in range(0, total_images, 8)]
+                print(f"LLFF test views: selected {len(training_indices)}/{total_images} views (every 8th)")
+                
+            else:  # 'val' split
+                # Validation: use a different sampling (every 16th starting from 4)
+                training_indices = [i for i in range(4, total_images, 16)]
+                print(f"LLFF validation views: selected {len(training_indices)}/{total_images} views (every 16th from 4)")
+                
+            # Store Vs_indices for reference (paper section 4.3)
+            self.Vs_indices = training_indices
+            return training_indices
         
-        # Select views that are in the far distance range (top 70% by distance)
-        sorted_indices = np.argsort(distances)
-        num_far_views = int(len(sorted_indices) * 0.7)
-        training_indices = sorted_indices[-num_far_views:].tolist()
-        
-        return training_indices
+        else:
+            # For other dataset types: use distance-based selection
+            # Compute distances from object center
+            distances = []
+            for camera in self.cameras:
+                distance = torch.norm(camera.camera_center - self.object_center)
+                distances.append(distance.item())
+            
+            # Select views that are in the far distance range (top 70% by distance)
+            sorted_indices = np.argsort(distances)
+            num_far_views = int(len(sorted_indices) * 0.7)
+            training_indices = sorted_indices[-num_far_views:].tolist()
+            
+            return training_indices
     
     def _compute_object_center(self) -> torch.Tensor:
         """
         Compute object center (p_target) from camera positions
+        For LLFF: use average of camera centers as specified in paper section 4.3
         """
         if not hasattr(self, 'cameras') or len(self.cameras) == 0:
-            return torch.zeros(3)
+            # Create default object center on specified device
+            return torch.zeros(3, dtype=torch.float32, device=self.device)
         
-        # Simple method: average of all camera look-at points
-        look_at_points = []
-        for camera in self.cameras:
-            # Compute look-at point (camera position + forward direction)
-            forward = camera.camera_to_world[:3, 2]  # -Z axis in camera space
-            look_at = camera.camera_center - forward * 3.0  # Assume looking at 3 units forward
-            look_at_points.append(look_at)
+        # For LLFF datasets: compute p_target as mean of camera centers (paper section 4.3)
+        if self.dataset_type == 'llff':
+            camera_centers = []
+            for camera in self.cameras:
+                camera_centers.append(camera.camera_center)
+            
+            # Average all camera centers to get p_target
+            p_target = torch.stack(camera_centers).mean(dim=0)
+            
+            print(f"LLFF p_target computed from {len(camera_centers)} camera centers")
+            print(f"p_target shape: {p_target.shape}, device: {p_target.device}")
+            
+            return p_target
         
-        # Average all look-at points
-        object_center = torch.stack(look_at_points).mean(dim=0)
-        
-        # 步骤3: 确保object_center在正确设备上
-        if len(self.cameras) > 0:
-            target_device = self.cameras[0].camera_center.device
-            object_center = object_center.to(target_device)
-        
-        return object_center
+        else:
+            # For other dataset types: use look-at points method
+            look_at_points = []
+            for camera in self.cameras:
+                # Compute look-at point (camera position + forward direction)
+                forward = camera.camera_to_world[:3, 2]  # -Z axis in camera space
+                look_at = camera.camera_center - forward * 3.0  # Assume looking at 3 units forward
+                look_at_points.append(look_at)
+            
+            # Average all look-at points
+            object_center = torch.stack(look_at_points).mean(dim=0)
+            
+            return object_center
     
     def _extract_closeup_test_views(self) -> List[int]:
         """
@@ -433,6 +551,7 @@ class CloseUpDataset(Dataset):
             
         Returns:
             Dictionary containing image, pose, focal_length, and metadata
+            For LLFF compatibility: also support tuple format (image, pose [3x5], focal)
         """
         # Select appropriate camera index based on split
         if self.split == 'train':
@@ -443,6 +562,17 @@ class CloseUpDataset(Dataset):
         camera = self.cameras[camera_idx]
         image = self.images[camera_idx]
         
+        # For LLFF format compatibility: extract focal length
+        focal_length = camera.fx  # Use fx as focal length
+        if hasattr(self, 'focals') and camera_idx < len(self.focals):
+            focal_length = self.focals[camera_idx]
+        
+        # Create pose matrix in LLFF format [3, 5] for compatibility
+        pose_3x4 = camera.camera_to_world[:3, :]  # [3, 4]
+        hwf = torch.tensor([camera.image_height, camera.image_width, focal_length], 
+                          device=pose_3x4.device, dtype=pose_3x4.dtype)
+        pose_3x5 = torch.cat([pose_3x4, hwf.unsqueeze(1)], dim=1)  # [3, 5]
+        
         # Apply data augmentation for training
         if self.split == 'train':
             image = self._apply_augmentation(image)
@@ -450,7 +580,9 @@ class CloseUpDataset(Dataset):
         return {
             'image': image,  # [C, H, W] tensor
             'pose': camera.camera_to_world,  # [4, 4] camera pose matrix
+            'pose_3x5': pose_3x5,  # [3, 5] LLFF format pose matrix  
             'focal_length': torch.tensor([camera.fx, camera.fy]),  # [2] focal lengths
+            'focal': focal_length,  # Single focal value for LLFF compatibility
             'camera': camera,  # Full camera object
             'idx': camera_idx,
             'is_closeup': camera_idx in self.closeup_test_views,
@@ -557,9 +689,8 @@ class SyntheticDataset(Dataset):
         self.image_height = image_height
         self.focal_length = focal_length
         
-        # Object center for view selection - 步骤3: 确保在CUDA设备上
-        device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-        self.object_center = torch.tensor([0., 0., 0.], device=device)  # Synthetic object at origin
+        # Object center for view selection
+        self.object_center = torch.tensor([0., 0., 0.])  # Synthetic object at origin
         
         # Generate synthetic cameras and images
         self.cameras, self.images = self._generate_synthetic_data()

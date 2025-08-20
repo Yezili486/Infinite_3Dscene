@@ -78,9 +78,9 @@ class ViewSelector:
         Returns:
             Tuple of (selected_indices, selection_info)
         """
-        # 步骤4: 清空缓存和设备统一
+        # 步骤4: 设备统一
         if self.device.type == 'cuda':
-            torch.cuda.empty_cache()
+            pass
         
         # 确保p_target在正确设备上
         p_target = p_target.to(self.device)
@@ -139,7 +139,7 @@ class ViewSelector:
         """
         # 步骤3: 确保p_target在CUDA设备上
         if self.device.type == 'cuda':
-            torch.cuda.empty_cache()
+            pass
         
         # 确保p_target在正确设备上
         p_target = p_target.to(self.device)
@@ -347,9 +347,9 @@ class ViewSelector:
         """
         Apply distance discount β (Appendix C)
         """
-        # 步骤6: 全局tensor处理 - 内存清理
+        # 步骤6: 全局tensor处理
         if self.device.type == 'cuda':
-            torch.cuda.empty_cache()
+            pass
         
         # 步骤1: 诊断tensor设备
         if len(view_infos) > 0:

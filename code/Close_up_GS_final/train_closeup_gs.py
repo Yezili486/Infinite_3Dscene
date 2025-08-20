@@ -18,7 +18,7 @@ import sys
 import argparse
 import torch
 import torch.cuda
-import gc  # For garbage collection
+# import gc  # For garbage collection - removed memory optimizations
 import numpy as np
 import time
 from pathlib import Path
@@ -116,7 +116,7 @@ class CloseupGSMainTrainer:
         }
     
     def _setup_device(self) -> torch.device:
-        """Setup device with RTX 3070Ti optimizations"""
+        """Setup device with optimal settings for high-performance GPU"""
         if not torch.cuda.is_available():
             self.logger.warning("CUDA not available, using CPU")
             return torch.device('cpu')
@@ -125,55 +125,24 @@ class CloseupGSMainTrainer:
         gpu_name = torch.cuda.get_device_name(0)
         self.logger.info(f"GPU: {gpu_name}")
         
-        if "3070" in gpu_name:
-            self.logger.info("NVIDIA RTX 3070Ti detected - applying optimizations")
-            # 3070Ti-specific optimizations
-            torch.backends.cudnn.benchmark = True
-            torch.backends.cuda.matmul.allow_tf32 = False  # Disable TF32 for 3070Ti
-            torch.backends.cudnn.allow_tf32 = False
-            
-            # Enable AMP for memory efficiency
-            self.use_amp = True
-            self.logger.info("Automatic Mixed Precision enabled for 3070Ti")
-        elif "4090" in gpu_name:
-            self.logger.info("NVIDIA RTX 4090 detected - applying optimizations")
-            # 4090-specific optimizations
-            torch.backends.cudnn.benchmark = True
-            torch.backends.cuda.matmul.allow_tf32 = True
-            torch.backends.cudnn.allow_tf32 = True
-            self.use_amp = False
-        else:
-            self.logger.info(f"GPU: {gpu_name} - using default optimizations")
-            torch.backends.cudnn.benchmark = True
-            self.use_amp = True  # Enable AMP for other GPUs
+        # Enable optimal settings for high-performance GPUs
+        torch.backends.cudnn.benchmark = True
+        torch.backends.cuda.matmul.allow_tf32 = True
+        torch.backends.cudnn.allow_tf32 = True
+        
+        # Disable AMP for full precision training
+        self.use_amp = False
+        self.logger.info("Full precision training enabled for high-performance GPU")
         
         device = torch.device(f'cuda:{self.args.gpu_id}')
         
-        # Clear cache and setup memory management
+        # Clear cache
         torch.cuda.empty_cache()
         
-        # Aggressive memory management for 3070Ti
-        if "3070" in gpu_name:
-            memory_fraction = 0.75  # Reduced from 0.85 to 0.75 for 3070Ti (8GB)
-            # Set CUDA allocator to avoid fragmentation
-            os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:128'
-            self.logger.info("Applied aggressive memory management for RTX 3070Ti")
-        elif "4090" in gpu_name:
-            memory_fraction = 0.95  # 4090 has 24GB
-        else:
-            memory_fraction = 0.7   # More conservative for other GPUs
-        
+        # Use maximum memory fraction for high-performance GPU
+        memory_fraction = 0.95
         torch.cuda.set_per_process_memory_fraction(memory_fraction)
         self.logger.info(f"GPU memory fraction set to {memory_fraction}")
-        
-        # Additional memory optimizations for 3070Ti
-        if "3070" in gpu_name:
-            # Force garbage collection
-            gc.collect()
-            torch.cuda.empty_cache()
-            # Set smaller cache sizes
-            torch.cuda.set_per_process_memory_fraction(memory_fraction, device)
-            self.logger.info("Applied additional memory optimizations for 8GB GPU")
         
         return device
     
@@ -226,9 +195,11 @@ class CloseupGSMainTrainer:
                 # Load real dataset (LERF/LLFF)
                 self.dataset = CloseUpDataset(
                     data_path=self.args.data_path,
+                    config=self.config,
+                    split='train',
                     dataset_type=self.args.dataset_type,
                     target_resolution=self.args.target_resolution,
-                    device=self.device
+                    device=str(self.device)
                 )
                 self.logger.info(f"Loaded {self.args.dataset_type} dataset: {len(self.dataset)} samples")
             
@@ -1197,8 +1168,14 @@ def main():
     # Parse arguments
     args = parse_arguments()
     
-    # Load configuration
-    config = Config(args.config)
+    # Load configuration - use debug config if debug mode is enabled
+    if args.debug and args.config == 'config/closeup_gs.yaml':
+        config_path = 'config/debug_gs.yaml'
+        print(f"Debug mode enabled - using debug configuration: {config_path}")
+    else:
+        config_path = args.config
+    
+    config = Config(config_path)
     
     # Override config with command line arguments
     config_dict = config.to_dict()

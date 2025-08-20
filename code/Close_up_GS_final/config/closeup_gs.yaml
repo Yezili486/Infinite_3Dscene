@@ -8,7 +8,7 @@ data:
   
 # GSModel baseline configuration (Step 3)
 gs_model:
-  max_gaussians: 100000
+  max_gaussians: 500000
   sh_degree: 3
   densify_threshold: 0.3333333333333333  # 1/3 as per paper section 4.3.4
 
@@ -46,11 +46,11 @@ training:
     scaling: 0.005
     rotation: 0.001
   
-  # Batch size optimization (RTX 3070Ti with 8GB memory)
-  batch_size: 1              # Optimal for RTX 3070Ti memory constraints
+  # Batch size optimization for high-performance GPU
+  batch_size: 1              # Optimal batch size
   effective_batch_size: 1    # No gradient accumulation needed
-  dataloader_workers: 2      # Reduced workers for 3070Ti (saves memory)
-  pin_memory: false         # Disable pin memory to save system RAM
+  dataloader_workers: 4      # More workers for high-performance GPU
+  pin_memory: true          # Enable pin memory for faster data transfer
   
   # Phase 2: CloseupRefiner training
   refinement_iterations: 10000
@@ -121,27 +121,27 @@ output:
   save_best_model: true
   save_phase_models: true
   
-# Hardware configuration (Optimized for NVIDIA RTX 3070Ti)
+# Hardware configuration (Optimized for high-performance GPU)
 device:
   use_cuda: true
   gpu_id: 0
-  mixed_precision: true    # Enable AMP for 3070Ti memory efficiency
+  mixed_precision: false   # Disable AMP for full precision
   
-  # RTX 3070Ti specific optimizations
-  cudnn_benchmark: true     # Enable cuDNN benchmarking for consistent workloads
-  tf32_matmul: false       # Disable TF32 (3070Ti has limited TF32 support)
-  tf32_cudnn: false        # Disable TF32 for cuDNN
-  memory_fraction: 0.85    # Use 85% of GPU memory (3070Ti has 8GB)
+  # High-performance GPU optimizations
+  cudnn_benchmark: true     # Enable cuDNN benchmarking
+  tf32_matmul: true        # Enable TF32 for faster computation
+  tf32_cudnn: true         # Enable TF32 for cuDNN
+  memory_fraction: 0.95    # Use 95% of GPU memory
   
-  # Memory management (3070Ti optimized)
-  empty_cache_interval: 500   # Clear CUDA cache more frequently (8GB memory)
-  gradient_accumulation: 1    # No gradient accumulation needed with batch_size=1
-  max_memory_allocated: 7.5   # Maximum memory allocation in GB
+  # Memory management (high-performance optimized)
+  empty_cache_interval: 2000  # Less frequent cache clearing
+  gradient_accumulation: 1    # No gradient accumulation needed
+  max_memory_allocated: 32.0  # Maximum memory allocation in GB
   
-  # Optimization flags (3070Ti compatible)
-  torch_compile: false     # Disable torch.compile for compatibility
-  flash_attention: false   # Disable flash attention if not needed
-  amp_enabled: true        # Enable Automatic Mixed Precision for memory efficiency
+  # Optimization flags (high-performance)
+  torch_compile: true      # Enable torch.compile for speed
+  flash_attention: true    # Enable flash attention if available
+  amp_enabled: false       # Disable AMP for full precision
 
 # Close-up specific parameters
 closeup:
@@ -207,20 +207,20 @@ view_selection:
     distance_weight: 0.4  # Weight for distance to target
     coverage_weight: 0.3  # Weight for Gaussian coverage
 
-# Progressive Self-Training Configuration (Step 6: Paper Section 4.3, Figure 2)
+  # Progressive Self-Training Configuration (Step 6: Paper Section 4.3, Figure 2)
 progressive_training:
   # Main progressive parameters
   enabled: true
   rounds: 3                    # Number of progressive rounds
   scales: [3, 9, 27]          # Scale factors α_t for each round
   
-  # View selection parameters (3070Ti optimized)
-  anchor_count: 3             # Reduced anchor views for memory efficiency (was 5)
-  update_count: 4             # Reduced update views for memory efficiency (was 8)
-  num_frontier_views: 8       # Reduced frontier views (was 12)
+  # View selection parameters (full performance)
+  anchor_count: 5             # Full anchor views for optimal quality
+  update_count: 8             # Full update views for optimal quality
+  num_frontier_views: 12      # Full frontier views for optimal quality
   
-  # Fine-tuning parameters (3070Ti optimized)
-  finetune_iterations: 3000   # Reduced iterations per round (was 5000)
+  # Fine-tuning parameters (full performance)
+  finetune_iterations: 5000   # Full iterations per round
   densify_threshold: 0.3333   # Distance threshold for densification (1/3)
   
   # Reliable pixel parameters

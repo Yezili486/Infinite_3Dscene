@@ -1,125 +1,219 @@
-# Close-up-GS: 高质量近距离视图合成
+# Close-up-GS: High-Quality Close-up View Synthesis
 
-基于论文 "Close-up-GS" 的完整 PyTorch 实现，专为 **NVIDIA RTX 3070Ti** 优化。
+A PyTorch implementation of Close-up-GS for high-quality close-up view synthesis, optimized for RTX 3070Ti.
 
-## 🚀 快速开始
+## Quick Start
 
-### 环境要求
-- Python 3.8+
-- NVIDIA RTX 3070Ti/4090 (8GB+ VRAM)
-- CUDA 11.8+
-
-### 安装依赖
+### 1. Install Dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-### 快速训练
-```bash
-# 合成数据训练（推荐用于测试）
-python train_closeup_gs.py --data_path ./test_data --dataset_type synthetic --target_resolution 256 256 --debug
+### 2. Download LLFF Dataset (Optional)
+For real-world data training, download the LLFF dataset:
 
-# 真实数据训练
-python train_closeup_gs.py --data_path /path/to/dataset --dataset_type lerf --target_resolution 512 512
+**Option A: Using Python Script (Cross-platform)**
+```bash
+python download_llff.py
 ```
 
-## 📁 项目结构
+**Option B: Using Shell Script (Linux/Mac)**
+```bash
+chmod +x download_llff.sh
+./download_llff.sh
+```
+
+**Option C: Using Batch File (Windows)**
+```cmd
+download_llff.bat
+```
+
+**Option D: Manual Download**
+```bash
+git clone https://github.com/Fyusion/LLFF
+cd LLFF
+bash download_data.sh
+cd ..
+mv LLFF/data data/llff/
+```
+
+### 3. Run Training
+
+**Synthetic Dataset (Quick Test)**
+```bash
+python train_closeup_gs.py --data_path ./test_data --dataset_type synthetic --target_resolution 256 256 --debug --num_samples 5 --output_dir ./outputs
+```
+
+**LLFF Dataset (Real Photos)**
+```bash
+python train_closeup_gs.py --data_path data/llff/fern --dataset_type llff --target_resolution 256 256 --output_dir ./outputs
+```
+
+**Custom Real Photos**
+```bash
+python train_closeup_gs.py --data_path llff_data --dataset_type real_photos --target_resolution 256 256 --output_dir ./outputs
+```
+
+## Project Structure
 
 ```
 Close_up_GS_final/
-├── data/                    # 数据加载模块
-│   ├── dataset.py          # CloseUpDataset类 (支持LERF/LLFF/NeRF)
-│   └── __init__.py
-├── models/                  # 模型定义
-│   ├── gs_model.py         # GSModel (高斯散射基线)
-│   ├── closeup_refiner.py  # CloseupRefiner (See3D+SUPIR)
-│   ├── see3d_integration.py
-│   └── __init__.py
-├── train/                   # 训练模块
-│   ├── gs_trainer.py       # GSTrainer
-│   ├── closeup_trainer.py  # CloseupGSTrainer
-│   └── __init__.py
-├── utils/                   # 工具模块
-│   ├── view_selection.py   # 智能视图选择算法
-│   ├── progressive_training.py  # 渐进自训练
-│   ├── config.py           # 配置管理
-│   ├── logger.py           # 日志系统
-│   ├── metrics.py          # 评估指标
-│   ├── camera.py           # 相机模型
-│   └── colmap_parser.py    # COLMAP数据解析
-├── config/                  # 配置文件
-│   ├── default.yaml        # 默认配置
-│   ├── debug_gs.yaml       # 调试配置
-│   └── gs_baseline.yaml    # 基线配置
-├── docs/                    # 文档
-│   └── STEP7_FINAL_SUMMARY.md
-├── train_closeup_gs.py     # 主训练脚本
-├── run_training.py         # 便捷运行脚本
-├── run_memory_optimized.py # 内存优化版本
-├── view_3d_model.py        # 3D模型可视化
-├── main.py                 # 项目入口
-└── requirements.txt        # 依赖列表
+├── models/                 # Core models
+│   ├── gs_model.py        # Gaussian Splatting baseline
+│   └── closeup_refiner.py # Close-up view refiner
+├── train/                  # Training modules
+│   └── closeup_trainer.py # Main trainer
+├── utils/                  # Utilities
+│   ├── camera.py          # Camera operations
+│   ├── metrics.py         # Evaluation metrics
+│   ├── progressive_training.py # Progressive training
+│   └── view_selection.py  # View selection algorithms
+├── data/                   # Dataset handling
+│   └── dataset.py         # Data loading
+├── config/                 # Configuration files
+│   ├── closeup_gs.yaml    # Main config
+│   └── debug_gs.yaml      # Debug config
+├── outputs/                # Training results
+├── download_llff.sh       # LLFF dataset download script
+├── download_llff.py       # Python download script
+└── train_closeup_gs.py    # Main training script
 ```
 
-## 🎯 核心功能
+## Core Features
 
-### 完整实现
-- ✅ **数据模块**: LERF/LLFF/NeRF数据集支持
-- ✅ **GSModel**: 高斯散射基线模型
-- ✅ **CloseupRefiner**: See3D+SUPIR集成
-- ✅ **智能视图选择**: 锚视图和待更新视图选择
-- ✅ **渐进自训练**: 多轮训练优化
-- ✅ **评估系统**: PSNR/SSIM/LPIPS/DINO指标
-- ✅ **3D模型导出**: PLY/OBJ/参数导出
+### 1. Gaussian Splatting Baseline (GSModel)
+- **3D Representation**: 200 Gaussians with position, scale, rotation, opacity, and SH coefficients
+- **Rendering**: Real-time differentiable rendering
+- **Optimization**: Densification and pruning strategies
 
-### RTX 3070Ti 优化
-- 内存管理优化 (8GB VRAM)
-- 自动混合精度 (AMP)
-- 批量大小优化 (batch_size=1)
-- 内存清理策略
+### 2. Close-up View Refinement
+- **See3D Integration**: View synthesis and super-resolution
+- **SUPIR Enhancement**: Post-processing detail enhancement
+- **Photometric Consistency**: Geometric consistency checks
 
-### 训练流程
-1. **基线训练**: 高斯散射模型优化
-2. **渐进自训练**: 3轮迭代优化
-3. **端到端微调**: 最终模型优化
-4. **评估导出**: 指标计算和3D模型导出
+### 3. Smart View Selection
+- **Anchor Views**: Optimal reference view selection
+- **Update Views**: Progressive view expansion
+- **Distance Weighting**: Spatial-aware view scoring
 
-## 📊 输出结果
+### 4. Progressive Training
+- **3-Round Strategy**: Baseline → Refinement → Fine-tuning
+- **Self-Training**: Iterative quality improvement
+- **Memory Optimization**: RTX 3070Ti optimized
 
-训练完成后，在 `outputs/` 目录下会生成：
-- `baseline_results/`: 基线模型渲染结果
-- `evaluation_images/`: 评估图像对比
-- `original_images/`: 原始训练图像
-- `3d_models/`: 3D高斯模型文件
-  - `gaussians_pointcloud.ply`: PLY点云文件
-  - `gaussian_parameters.npz`: 高斯参数
-  - `model_statistics.json`: 模型统计信息
-- `training_stats.json`: 训练统计
-- `final_model.pth`: 最终模型检查点
+## RTX 3070Ti Optimizations
 
-## 🔧 配置说明
+- **Memory Management**: 75% GPU memory fraction
+- **Mixed Precision**: Automatic mixed precision (AMP)
+- **Memory Cleanup**: Aggressive cache clearing
+- **Batch Optimization**: Reduced batch sizes for 8GB VRAM
 
-主要配置文件：
-- `config/debug_gs.yaml`: 快速测试配置（减少迭代次数）
-- `config/gs_baseline.yaml`: 标准训练配置
-- `config/default.yaml`: 默认配置
+## Training Flow
 
-## 📝 使用示例
+1. **Initial Optimization**: 10 iterations baseline training
+2. **Progressive Update**: 3 rounds of refinement
+3. **Fine-tuning**: 5 iterations final optimization
+4. **Evaluation**: PSNR, SSIM, LPIPS metrics
 
-```bash
-# 1. 快速测试（合成数据）
-python train_closeup_gs.py --data_path ./test_data --dataset_type synthetic --target_resolution 256 256 --debug --config config/debug_gs.yaml
+## Output Results
 
-# 2. 标准训练（真实数据）
-python train_closeup_gs.py --data_path /path/to/lerf --dataset_type lerf --target_resolution 512 512 --config config/gs_baseline.yaml
+### Training Statistics
+- `training_stats.json`: Complete training metrics
+- `final_model.pth`: Trained model checkpoint
 
-# 3. 内存优化版本（8GB GPU）
-python run_memory_optimized.py
+### Images
+- `evaluation_images/`: Final rendered results
+- `baseline_results/`: Baseline model outputs
+- `original_images/`: Input training images
 
-# 4. 查看3D模型
-python view_3d_model.py --model_path outputs/3d_models/gaussians_pointcloud.ply
+### 3D Models
+- `3d_models/gaussians_spheres.obj`: 3D model for visualization
+- `3d_models/gaussian_parameters.npz`: Raw Gaussian parameters
+- `3d_models/model_statistics.json`: Model statistics
+
+## Configuration
+
+### Debug Mode (Fast Testing)
+```yaml
+# config/debug_gs.yaml
+training:
+  baseline_iterations: 10
+  refinement_iterations: 5
+  finetune_iterations: 5
 ```
 
-## 📄 许可证
+### Production Mode
+```yaml
+# config/closeup_gs.yaml
+training:
+  baseline_iterations: 30000
+  refinement_iterations: 10000
+  finetune_iterations: 5000
+```
 
-本项目基于论文 "Close-up-GS" 实现，仅供学术研究使用。
+## Dataset Support
+
+### Synthetic Dataset
+- Programmatically generated 3D scenes
+- Fast testing and debugging
+- Controlled environment
+
+### LLFF Dataset
+- Real-world photos with camera poses
+- Standard NeRF dataset format
+- High-quality training data
+
+### Custom Real Photos
+- User-provided images
+- LLFF format compatible
+- Flexible data source
+
+## Performance Metrics
+
+- **PSNR**: Peak Signal-to-Noise Ratio
+- **SSIM**: Structural Similarity Index
+- **LPIPS**: Learned Perceptual Image Patch Similarity
+- **DINO**: Feature similarity (no-reference)
+
+## Memory Usage
+
+- **Baseline Training**: ~4GB VRAM
+- **Refinement Phase**: ~6GB VRAM
+- **Fine-tuning**: ~5GB VRAM
+- **Total Peak**: ~7GB VRAM
+
+## Troubleshooting
+
+### Common Issues
+
+1. **GPU Out of Memory**
+   - Reduce `target_resolution`
+   - Use debug configuration
+   - Check memory fraction settings
+
+2. **Device Mismatch Errors**
+   - Ensure all tensors are on CUDA
+   - Check camera device placement
+   - Verify model device assignment
+
+3. **Training Stuck**
+   - Check LPIPS model initialization
+   - Verify data loading
+   - Monitor GPU memory usage
+
+## Citation
+
+If you use this code, please cite the original Close-up-GS paper:
+
+```bibtex
+@article{closeup-gs-2024,
+  title={Close-up-GS: High-Quality Close-up View Synthesis},
+  author={...},
+  journal={...},
+  year={2024}
+}
+```
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.

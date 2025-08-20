@@ -180,6 +180,7 @@ class GSModel(nn.Module):
     def forward(self, camera: Camera, training_views_mask: Optional[torch.Tensor] = None) -> Dict[str, torch.Tensor]:
         """
         Forward rendering function (Equations 1-3 from paper Section 3)
+        Memory optimized with AMP for RTX 3070Ti (8GB)
         
         Args:
             camera: Camera object for rendering
@@ -188,16 +189,18 @@ class GSModel(nn.Module):
         Returns:
             Dictionary containing rendered outputs
         """
-        # Get Gaussian parameters
-        centers = self.get_centers  # μ in equation (1)
-        covariances = self.get_covariance_matrices()  # Σ in equation (1)
-        opacities = self.get_opacities  # α in equation (2)
-        sh_coeffs = self.get_sh_coeffs
-        
-        # Render image using Gaussian Splatting
-        rendered_image, depth_map, weights = self.render_gaussians(
-            centers, covariances, opacities, sh_coeffs, camera
-        )
+        # Use mixed precision for memory efficiency on RTX 3070Ti
+        with torch.cuda.amp.autocast():
+            # Get Gaussian parameters
+            centers = self.get_centers  # μ in equation (1)
+            covariances = self.get_covariance_matrices()  # Σ in equation (1)
+            opacities = self.get_opacities  # α in equation (2)
+            sh_coeffs = self.get_sh_coeffs
+            
+            # Render image using Gaussian Splatting
+            rendered_image, depth_map, weights = self.render_gaussians(
+                centers, covariances, opacities, sh_coeffs, camera
+            )
         
         return {
             'image': rendered_image,
